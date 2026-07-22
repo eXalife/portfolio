@@ -8,4 +8,4 @@
 # You can see what browsers were selected by your queries by running:
 #   npx browserslist
 
-chrome >= 72, firefox >= 64, safari >= 12, edge >= 79, ios_saf >= 12, > 0.5% and not dead
+chrome >= 67, and_chr >= 67, firefox >= 68, and_ff >= 68, safari >= 14, ios_saf >= 14, edge >= 79

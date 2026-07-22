@@ -1,14 +1,15 @@
 import { Component, AfterViewInit, Inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
+import { RouterLink } from "@angular/router";
 
 @Component({
   selector: 'app-main',
   standalone: true,
-  imports: [],
+  imports: [RouterLink],
   templateUrl: './main.component.html',
   styleUrl: './main.component.scss'
 })
-export class Main implements AfterViewInit {
+export class MainComponent implements AfterViewInit {
   constructor(@Inject(PLATFORM_ID) private platformId: Object) { }
 
   ngAfterViewInit(): void {

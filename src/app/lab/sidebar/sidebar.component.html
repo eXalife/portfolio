@@ -1,0 +1,25 @@
+<ul class="layout-menu" role="menu" (keydown)="onKeydown($event)">
+    <li class="layout-root-menuitem" *ngFor="let item of model; let i = index;" role="none">
+      <div class="layout-menuitem-root-text" [attr.aria-label]="item.label">{{item.label}}</div>
+      <ul role="menu">
+        <li *ngFor="let child of item.items" role="none">
+          <a [attr.href]="child.url" (click)="itemClick($event)" [ngClass]="child.class"
+            *ngIf="(!child.routerLink || child.items) && child.visible !== false" [attr.target]="child.target"
+            [attr.tabindex]="0" [attr.aria-label]="child.label" role="menuitem" pRipple>
+            <i [ngClass]="child.icon" class="layout-menuitem-icon"></i>
+            <span>{{child.label}}</span>
+            <span class="menuitem-badge" *ngIf="item.badge">{{child.badge}}</span>
+          </a>
+          <a (click)="itemClick($event)" *ngIf="(child.routerLink && !child.items) && child.visible !== false"
+            [ngClass]="child.class" [routerLink]="child.routerLink"
+            routerLinkActive="active-menuitem-routerlink router-link-exact-active"
+            [routerLinkActiveOptions]="{exact: !child.preventExact}" [attr.target]="child.target" [attr.tabindex]="0"
+            [attr.aria-label]="child.label" role="menuitem" pRipple>
+            <i [ngClass]="child.icon" class="layout-menuitem-icon"></i>
+            <span>{{child.label}}</span>
+            <span class="p-tag p-badge ml-auto" *ngIf="child.badge">{{child.badge}}</span>
+          </a>
+        </li>
+      </ul>
+    </li>
+  </ul>

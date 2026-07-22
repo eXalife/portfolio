@@ -1,0 +1,36 @@
+.layout-topbar {
+  .layout-topbar-logo {
+    margin-left: 1rem;
+  }
+
+  .layout-topbar-switch {
+    margin: 0 0 0 auto;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+
+    i {
+      font-size: 1rem;
+
+      &.pi-sun {
+        margin-right: 0.5rem;
+      }
+
+      &.pi-moon {
+        margin-left: 0.5rem;
+      }
+    }
+  }
+
+  @media (max-width: 991px) {
+    padding: 0 1rem;
+
+    .layout-topbar-logo {
+      margin-left: 0;
+    }
+
+    .layout-topbar-switch {
+      padding: 1rem;
+    }
+  }
+}
