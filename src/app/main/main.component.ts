@@ -1,21 +1,20 @@
-import { afterNextRender, Component, signal } from '@angular/core';
-
-interface Star {
-  left: string;
-  top: string;
-  size: string;
-  duration: string;
-}
+import { Component, AfterViewInit, Inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 
 @Component({
   selector: 'app-main',
+  standalone: true,
   imports: [],
-  templateUrl: './main.html',
-  styleUrl: './main.scss',
+  templateUrl: './main.component.html',
+  styleUrl: './main.component.scss'
 })
-export class Main {
-  constructor() {
-    afterNextRender(() => this.stars());
+export class Main implements AfterViewInit {
+  constructor(@Inject(PLATFORM_ID) private platformId: Object) { }
+
+  ngAfterViewInit(): void {
+    if (isPlatformBrowser(this.platformId)) {
+      this.stars();
+    }
   }
 
   stars(): void {
