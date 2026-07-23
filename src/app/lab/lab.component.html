@@ -12,3 +12,5 @@
   <div class="layout-mask"></div>
   <p-toast [autoZIndex]="false" styleClass="toast"></p-toast>
 </div>
+<p-blockUI [blocked]="loading" [autoZIndex]="false" styleClass="blockui" />
+<p-progressSpinner *ngIf="loading" styleClass="spinner" ariaLabel="loading" />

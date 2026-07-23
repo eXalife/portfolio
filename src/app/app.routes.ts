@@ -1,14 +1,18 @@
 import { Routes } from '@angular/router';
-import { MainComponent } from './main/main.component';
 
 export const routes: Routes = [
-    { path: '', component: MainComponent },
+    {
+        path: '',
+        loadComponent: () => import('./main/main.component').then(m => m.MainComponent),
+        title: 'Cem Temuçin'
+    },
     {
         path: 'lab',
         loadComponent: () => import('./lab/lab.component').then(m => m.LabComponent),
+        title: 'Cem Temuçin | LAB',
         children: [
             { path: '', redirectTo: 'password-generator', pathMatch: 'full' },
-            { path: 'password-generator', loadComponent: () => import('./lab/password-generator/password-generator.component').then(m => m.PasswordGeneratorComponent) }
+            { path: 'password-generator', loadComponent: () => import('./lab/pages/password-generator/password-generator.component').then(m => m.PasswordGeneratorComponent), title: 'Cem Temuçin | Password Generator' }
         ]
     }
 ];

@@ -1,25 +1,25 @@
-import { DOCUMENT, NgClass } from '@angular/common';
+import { NgClass, NgIf } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
-import { Component, Inject, OnDestroy, Renderer2, ViewChild, ViewEncapsulation } from '@angular/core';
+import { Component, OnDestroy, Renderer2, ViewChild, ViewEncapsulation } from '@angular/core';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
+import { BlockUIModule } from 'primeng/blockui';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { ToastModule } from 'primeng/toast';
 import { filter, Subscription } from 'rxjs';
 import { LayoutService } from '../service/layout.service';
 import { SidebarComponent } from './sidebar/sidebar.component';
 import { TopbarComponent } from './topbar/topbar.component';
-import { ToastModule } from 'primeng/toast';
 
 @Component({
   selector: 'app-lab',
   standalone: true,
-  imports: [HttpClientModule, TopbarComponent, SidebarComponent, RouterOutlet, NgClass, ToastModule],
+  imports: [HttpClientModule, TopbarComponent, SidebarComponent, RouterOutlet, NgClass, ToastModule, ProgressSpinnerModule, BlockUIModule, NgIf],
   templateUrl: './lab.component.html',
   styleUrl: './lab.component.scss',
   encapsulation: ViewEncapsulation.None
 })
 export class LabComponent implements OnDestroy {
-  loading = true;
-  showAuth = false;
-  showDashboard = false;
+  loading = false;
 
   overlayMenuOpenSubscription!: Subscription;
   menuOutsideClickListener: any;
@@ -28,7 +28,7 @@ export class LabComponent implements OnDestroy {
   @ViewChild(SidebarComponent) appSidebar!: SidebarComponent;
   @ViewChild(TopbarComponent) appTopbar!: TopbarComponent;
 
-  constructor(private layoutService: LayoutService, private renderer: Renderer2, private router: Router, @Inject(DOCUMENT) private document: Document) {
+  constructor(private layoutService: LayoutService, private renderer: Renderer2, private router: Router) {
     if (this.layoutService.isBrowser) {
       this.overlayMenuOpenSubscription = this.layoutService.overlayOpen$.subscribe(() => {
         if (!this.menuOutsideClickListener) {

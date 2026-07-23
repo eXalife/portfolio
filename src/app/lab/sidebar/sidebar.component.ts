@@ -19,7 +19,7 @@ export class SidebarComponent implements OnInit {
     this.model = [
       {
         items: [
-          { label: 'Password Generator', icon: 'pi pi-fw pi-home', routerLink: ['password-generator'] }
+          { label: 'Password Generator', icon: 'pi pi-fw pi-key', routerLink: ['password-generator'] }
         ]
       }
     ];
