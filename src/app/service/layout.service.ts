@@ -79,14 +79,14 @@ export class LayoutService {
                     theme: 'md-light-indigo',
                     colorScheme: 'light'
                 }));
-                themeLink.href = 'assets/primeng-style/md-light-indigo/theme.css';
+                themeLink.href = 'assets/primeng-themes/md-light-indigo/theme.css';
             } else if ((!themeFromStorage && prefersDark) || themeFromStorage === 'dark') {
                 this.config.update((config) => ({
                     ...config,
                     theme: 'md-dark-indigo',
                     colorScheme: 'dark'
                 }));
-                themeLink.href = 'assets/primeng-style/md-dark-indigo/theme.css';
+                themeLink.href = 'assets/primeng-themes/md-dark-indigo/theme.css';
             }
 
             this.document.head.appendChild(themeLink);
