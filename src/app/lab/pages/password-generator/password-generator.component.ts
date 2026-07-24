@@ -22,6 +22,12 @@ import { LayoutService } from '../../../service/layout.service';
   styleUrl: './password-generator.component.scss'
 })
 export class PasswordGeneratorComponent implements OnInit {
+  readonly uppercaseChars: string = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  readonly lowercaseChars: string = 'abcdefghijklmnopqrstuvwxyz';
+  readonly numberChars: string = '0123456789';
+  readonly symbolChars: string = '!@#$%^&*()_+-=[]{}|;:,.<>?';
+  customChars: string = this.uppercaseChars + this.lowercaseChars + this.numberChars + this.symbolChars;
+
   password: string = '';
   passwordLength: number = 24;
   passwordLength$ = new Subject<number>();
@@ -31,14 +37,12 @@ export class PasswordGeneratorComponent implements OnInit {
   includeNumbers: boolean = true;
   includeSymbols: boolean = true;
   customize: boolean = false;
+
   minPasswordLength: number = 4;
   maxPasswordLength: number = 256;
 
-  uppercaseChars: string = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-  lowercaseChars: string = 'abcdefghijklmnopqrstuvwxyz';
-  numberChars: string = '0123456789';
-  symbolChars: string = '!@#$%^&*()_+-=[]{}|;:,.<>?';
-  customChars: string = this.uppercaseChars + this.lowercaseChars + this.numberChars + this.symbolChars;
+  private clickCount: number = 0;
+  private clickTimeout: any;
 
   constructor(private layoutService: LayoutService, private messageService: MessageService) {
     // subject for preventing too many calls to generatePassword when the slider is being dragged
@@ -134,5 +138,16 @@ export class PasswordGeneratorComponent implements OnInit {
       this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Could not copy password' });
       console.error('Could not copy password: ', err);
     });
+  }
+
+  unlockEasterEgg() {
+    this.clickCount++;
+    if (this.clickTimeout) clearTimeout(this.clickTimeout);
+    this.clickTimeout = setTimeout(() => this.clickCount = 0, 1000);
+    if (this.clickCount === 8) {
+      this.maxPasswordLength = 8192;
+      this.messageService.add({ severity: 'success', summary: 'Easter Egg Unlocked!', detail: 'Max password length increased to 8192' });
+      this.clickCount = 0;
+    }
   }
 }
