@@ -1,6 +1,6 @@
-import { NgIf } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { NgIf, NgStyle } from '@angular/common';
+import { Component, computed, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -11,13 +11,13 @@ import { InputSwitchModule } from 'primeng/inputswitch';
 import { InputTextModule } from 'primeng/inputtext';
 import { InputTextareaModule } from 'primeng/inputtextarea';
 import { SliderModule } from 'primeng/slider';
-import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { LayoutService } from '../../../service/layout.service';
 
 @Component({
   selector: 'app-password-generator',
   standalone: true,
-  imports: [NgIf, FormsModule, InputTextModule, InputSwitchModule, FloatLabelModule, CheckboxModule, SliderModule, InputNumberModule, ButtonModule, InputTextareaModule],
+  imports: [NgIf, FormsModule, InputTextModule, InputSwitchModule, FloatLabelModule, CheckboxModule, SliderModule, InputNumberModule, ButtonModule, InputTextareaModule, NgStyle],
   templateUrl: './password-generator.component.html',
   styleUrl: './password-generator.component.scss'
 })
@@ -29,8 +29,12 @@ export class PasswordGeneratorComponent implements OnInit {
   customChars: string = this.uppercaseChars + this.lowercaseChars + this.numberChars + this.symbolChars;
 
   password: string = '';
-  passwordLength: number = 24;
-  passwordLength$ = new Subject<number>();
+  passwordLength = signal<number>(24);
+
+  passwordWidth = computed(() => {
+    const length = this.passwordLength();
+    return length <= 0 ? 0 : Math.floor(Math.log10(length)) + 1;
+  });
 
   includeUppercase: boolean = true;
   includeLowercase: boolean = true;
@@ -45,9 +49,9 @@ export class PasswordGeneratorComponent implements OnInit {
   private clickTimeout: any;
 
   constructor(private layoutService: LayoutService, private messageService: MessageService) {
-    // subject for preventing too many calls to generatePassword when the slider is being dragged
-    this.passwordLength$.pipe(debounceTime(200), distinctUntilChanged(), takeUntilDestroyed()).subscribe((value: number) => {
-      this.passwordLength = value;
+    // observe for preventing too many calls to generatePassword when the slider is being dragged
+    toObservable(this.passwordLength).pipe(debounceTime(200), distinctUntilChanged(), takeUntilDestroyed()).subscribe((value: number) => {
+      this.passwordLength.set(value);
       this.generatePassword();
     });
   }
@@ -77,8 +81,13 @@ export class PasswordGeneratorComponent implements OnInit {
   generatePassword() {
     if (!this.layoutService.isBrowser) return;
 
-    if (this.passwordLength < this.minPasswordLength) {
-      this.passwordLength = this.minPasswordLength;
+    let currentLength = this.passwordLength();
+    if (currentLength < this.minPasswordLength) {
+      this.passwordLength.set(this.minPasswordLength);
+      currentLength = this.minPasswordLength;
+    } else if (currentLength > this.maxPasswordLength) {
+      this.passwordLength.set(this.maxPasswordLength);
+      currentLength = this.maxPasswordLength;
     }
 
     const activeSets: string[] = [];
@@ -104,31 +113,48 @@ export class PasswordGeneratorComponent implements OnInit {
       return;
     }
 
-    // twice the length of random numbers for selection and shuffling, first half for selection, second half for shuffling
-    const randomValues = new Uint32Array(this.passwordLength * 2);
-    window.crypto.getRandomValues(randomValues);
-
     const passwordArray: string[] = [];
-    let randIdx = 0;
 
     // guarantee at least one character from each selected set
     for (const charSet of activeSets) {
-      if (passwordArray.length >= this.passwordLength) break;
-      passwordArray.push(charSet[randomValues[randIdx++] % charSet.length]);
+      if (passwordArray.length >= currentLength) break;
+      const randomIndex = this.getSecureRandomIndex(charSet.length);
+      passwordArray.push(charSet[randomIndex]);
     }
 
     // fill the remaining length with random characters from all active sets
-    for (let i = passwordArray.length; i < this.passwordLength; i++) {
-      passwordArray.push(characters[randomValues[randIdx++] % characters.length]);
+    while (passwordArray.length < currentLength) {
+      const safeIndex = this.getSecureRandomIndex(characters.length);
+      passwordArray.push(characters[safeIndex]);
     }
 
-    // fisher-yates shuffle
-    for (let i = passwordArray.length - 1; i > 0; i--) {
-      const j = randomValues[randIdx++] % (i + 1);
-      [passwordArray[i], passwordArray[j]] = [passwordArray[j], passwordArray[i]];
-    }
+    this.shuffleArray(passwordArray);
 
     this.password = passwordArray.join('');
+  }
+
+  // generates a cryptographically secure random index with zero modulo bias.
+  private getSecureRandomIndex(max: number): number {
+    if (max <= 0) return 0;
+    const randomBuffer = new Uint32Array(1);
+    const MAX_UINT32 = 4294967296; // total count of possible values
+    const limit = MAX_UINT32 - (MAX_UINT32 % max);
+
+    let randomValue: number;
+    do {
+      window.crypto.getRandomValues(randomBuffer);
+      randomValue = randomBuffer[0];
+    } while (randomValue >= limit);
+
+    return randomValue % max;
+  }
+
+  // fisher-yates shuffle
+  private shuffleArray(passwordArray: string[]): void {
+    for (let i = passwordArray.length - 1; i > 0; i--) {
+      const j = this.getSecureRandomIndex(i + 1);
+      [passwordArray[i], passwordArray[j]] = [passwordArray[j], passwordArray[i]];
+    }
   }
 
   copyPassword() {
@@ -145,8 +171,8 @@ export class PasswordGeneratorComponent implements OnInit {
     if (this.clickTimeout) clearTimeout(this.clickTimeout);
     this.clickTimeout = setTimeout(() => this.clickCount = 0, 1000);
     if (this.clickCount === 8) {
-      this.maxPasswordLength = 8192;
-      this.messageService.add({ severity: 'success', summary: 'Easter Egg Unlocked!', detail: 'Max password length increased to 8192' });
+      this.maxPasswordLength = 16384;
+      this.messageService.add({ severity: 'contrast', summary: 'Easter Egg Unlocked!', detail: 'Max password length increased to 16384' });
       this.clickCount = 0;
     }
   }
