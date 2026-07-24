@@ -83,12 +83,12 @@ $base-color: #3affd0;
             bottom: 0;
             left: 0;
             background-color: $base-color;
-            transform-origin: bottom center;
+            transform-origin: bottom left;
             transition: transform 0.33s ease-out;
         }
 
         :hover::after {
-            transform-origin: bottom center;
+            transform-origin: bottom left;
             transform: scaleX(1);
         }
     }

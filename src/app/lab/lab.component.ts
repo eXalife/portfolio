@@ -1,18 +1,19 @@
 import { NgClass, NgIf } from '@angular/common';
-import { HttpClientModule } from '@angular/common/http';
 import { Component, Renderer2, ViewEncapsulation } from '@angular/core';
 import { Router, RouterOutlet } from '@angular/router';
 import { BlockUIModule } from 'primeng/blockui';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { ToastModule } from 'primeng/toast';
+import { TooltipModule } from 'primeng/tooltip';
 import { LayoutService } from '../service/layout.service';
+import { FooterComponent } from './footer/footer.component';
 import { SidebarComponent } from './sidebar/sidebar.component';
 import { TopbarComponent } from './topbar/topbar.component';
 
 @Component({
   selector: 'app-lab',
   standalone: true,
-  imports: [HttpClientModule, TopbarComponent, SidebarComponent, RouterOutlet, NgClass, ToastModule, ProgressSpinnerModule, BlockUIModule, NgIf],
+  imports: [TopbarComponent, SidebarComponent, FooterComponent, RouterOutlet, NgIf, NgClass, ToastModule, TooltipModule, ProgressSpinnerModule, BlockUIModule],
   templateUrl: './lab.component.html',
   styleUrl: './lab.component.scss',
   encapsulation: ViewEncapsulation.None
