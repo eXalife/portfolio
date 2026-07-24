@@ -13,4 +13,6 @@
   <p-toast [autoZIndex]="false" styleClass="toast"></p-toast>
 </div>
 <p-blockUI [blocked]="loading" [autoZIndex]="false" styleClass="blockui" />
-<p-progressSpinner *ngIf="loading" styleClass="spinner" ariaLabel="loading" />
+@if (loading) {
+<p-progressSpinner styleClass="spinner" ariaLabel="loading" />
+}

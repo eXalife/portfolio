@@ -1,17 +1,13 @@
 .layout-footer {
-    .footer-name {
-        margin-left: auto;
-    }
     .footer-link {
         margin-left: auto;
         justify-self: flex-end;
-        cursor: pointer;
         text-decoration: none;
         color: var(--text-color);
 
         >img {
-            width: 24px;
-            height: 24px;
+            width: 28px;
+            height: 28px;
         }
     }
 }

@@ -1,19 +1,20 @@
-import { NgClass, NgIf } from '@angular/common';
-import { Component, Renderer2, ViewEncapsulation } from '@angular/core';
+import { NgClass } from '@angular/common';
+import { Component, Renderer2, ViewChild, ViewEncapsulation } from '@angular/core';
 import { Router, RouterOutlet } from '@angular/router';
 import { BlockUIModule } from 'primeng/blockui';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { ToastModule } from 'primeng/toast';
-import { TooltipModule } from 'primeng/tooltip';
 import { LayoutService } from '../service/layout.service';
 import { FooterComponent } from './footer/footer.component';
 import { SidebarComponent } from './sidebar/sidebar.component';
 import { TopbarComponent } from './topbar/topbar.component';
+import { PrimeNGConfig } from 'primeng/api';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-lab',
   standalone: true,
-  imports: [TopbarComponent, SidebarComponent, FooterComponent, RouterOutlet, NgIf, NgClass, ToastModule, TooltipModule, ProgressSpinnerModule, BlockUIModule],
+  imports: [NgClass, TopbarComponent, SidebarComponent, FooterComponent, RouterOutlet, ToastModule, ProgressSpinnerModule, BlockUIModule],
   templateUrl: './lab.component.html',
   styleUrl: './lab.component.scss',
   encapsulation: ViewEncapsulation.None
@@ -21,11 +22,66 @@ import { TopbarComponent } from './topbar/topbar.component';
 export class LabComponent {
   loading = false;
 
-  constructor(private layoutService: LayoutService, private renderer: Renderer2, private router: Router) {
+  overlayMenuOpenSubscription?: Subscription;
+
+  menuOutsideClickListener: any;
+
+  profileMenuOutsideClickListener: any;
+
+  @ViewChild(SidebarComponent) appSidebar!: SidebarComponent;
+
+  @ViewChild(TopbarComponent) appTopbar!: TopbarComponent;
+
+  constructor(private layoutService: LayoutService, private renderer: Renderer2, private router: Router, private primengConfig: PrimeNGConfig) {
     if (this.layoutService.isBrowser) {
-      if (this.layoutService.state.staticMenuMobileActive) {
-        this.blockBodyScroll();
-      }
+      this.primengConfig.ripple = true;
+
+      this.overlayMenuOpenSubscription = this.layoutService.overlayOpen$.subscribe(() => {
+        if (!this.menuOutsideClickListener) {
+          this.menuOutsideClickListener = this.renderer.listen('document', 'click', event => {
+            const isOutsideClicked = !(this.appSidebar.el.nativeElement.isSameNode(event.target) || this.appSidebar.el.nativeElement.contains(event.target)
+              || this.appTopbar.menuButton.nativeElement.isSameNode(event.target) || this.appTopbar.menuButton.nativeElement.contains(event.target));
+
+            if (isOutsideClicked) {
+              this.hideMenu();
+            }
+          });
+        }
+
+        if (!this.profileMenuOutsideClickListener) {
+          this.profileMenuOutsideClickListener = this.renderer.listen('document', 'click', event => {
+            const isOutsideClicked = !(this.appTopbar.menu.nativeElement.isSameNode(event.target) || this.appTopbar.menu.nativeElement.contains(event.target)
+              || this.appTopbar.topbarMenuButton.nativeElement.isSameNode(event.target) || this.appTopbar.topbarMenuButton.nativeElement.contains(event.target));
+
+            if (isOutsideClicked) {
+              this.hideProfileMenu();
+            }
+          });
+        }
+
+        if (this.layoutService.state.staticMenuMobileActive) {
+          this.blockBodyScroll();
+        }
+      });
+    }
+  }
+
+  hideMenu() {
+    this.layoutService.state.overlayMenuActive = false;
+    this.layoutService.state.staticMenuMobileActive = false;
+    this.layoutService.state.menuHoverActive = false;
+    if (this.menuOutsideClickListener) {
+      this.menuOutsideClickListener();
+      this.menuOutsideClickListener = null;
+    }
+    this.unblockBodyScroll();
+  }
+
+  hideProfileMenu() {
+    this.layoutService.state.profileSidebarVisible = false;
+    if (this.profileMenuOutsideClickListener) {
+      this.profileMenuOutsideClickListener();
+      this.profileMenuOutsideClickListener = null;
     }
   }
 

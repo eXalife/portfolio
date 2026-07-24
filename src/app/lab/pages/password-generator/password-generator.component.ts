@@ -1,4 +1,3 @@
-import { NgIf, NgStyle } from '@angular/common';
 import { Component, computed, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
@@ -17,7 +16,7 @@ import { LayoutService } from '../../../service/layout.service';
 @Component({
   selector: 'app-password-generator',
   standalone: true,
-  imports: [NgIf, FormsModule, InputTextModule, InputSwitchModule, FloatLabelModule, CheckboxModule, SliderModule, InputNumberModule, ButtonModule, InputTextareaModule, NgStyle],
+  imports: [FormsModule, InputTextModule, InputSwitchModule, FloatLabelModule, CheckboxModule, SliderModule, InputNumberModule, ButtonModule, InputTextareaModule],
   templateUrl: './password-generator.component.html',
   styleUrl: './password-generator.component.scss'
 })
@@ -157,7 +156,7 @@ export class PasswordGeneratorComponent implements OnInit {
     }
   }
 
-  copyPassword() {
+  copyPasswordToClipboard() {
     navigator.clipboard.writeText(this.password).then(() => {
       this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Password copied to clipboard' });
     }).catch(err => {
