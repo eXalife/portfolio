@@ -1,0 +1,81 @@
+<div class="col-12 xl:col-10 xl:col-offset-1">
+    <div class="card p-fluid">
+        <div class="field col-12 grid">
+            <div class="col-12 md:col-4 md:col-offset-4">
+                <div class="main color-list border-round-2xl p-1 text-xl flex flex-column justify-content-center align-items-center row-gap-3"
+                    [style.backgroundColor]="currentColor().hex" [autoContrast]="currentColor().hex">
+                    <span class="cursor-pointer" (click)="copyColorToClipboard(currentColor().hex.toUpperCase())">
+                        {{ currentColor().hex | uppercase }}
+                    </span>
+                    <span class="cursor-pointer" (click)="copyColorToClipboard(currentColor().rgb)">
+                        {{ currentColor().rgb }}
+                    </span>
+                    <span class="cursor-pointer" (click)="copyColorToClipboard(currentColor().hsv)">
+                        {{ currentColor().hsv }}
+                    </span>
+                    <span class="cursor-pointer" (click)="copyColorToClipboard(currentColor().hsl)">
+                        {{ currentColor().hsl }}
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="field col-12 grid">
+            <div class="col-12 block sm:hidden">
+                <p-accordion>
+                    <p-accordionTab header="Shades">
+                        @for (shade of colorShades(); track shade) {
+                        <ng-container [ngTemplateOutlet]="colorCard"
+                            [ngTemplateOutletContext]="{ shade: shade }"></ng-container>
+                        }
+                    </p-accordionTab>
+                </p-accordion>
+            </div>
+
+            <div class="col-12 hidden sm:flex flex-wrap">
+                @for (shade of colorShades(); track shade) {
+                <div class="col-6 md:col-3">
+                    <ng-container [ngTemplateOutlet]="colorCard"
+                        [ngTemplateOutletContext]="{ shade: shade }"></ng-container>
+                </div>
+                }
+            </div>
+        </div>
+        <div class="field col-12 grid row-gap-3">
+            <div class="col-12 md:col-4">
+                <p-button label="Generate" icon="pi pi-sync" (onClick)="setColor()" />
+            </div>
+            <div class="col-12 md:col-4">
+                <p-button (onClick)="op.toggle($event)" icon="pi pi-history" label="History" severity="info" />
+                <p-overlayPanel #op>
+                    @for (hex of colorHistory(); track $index) {
+                    <div class="cursor-pointer m-1 w-10rem h-2rem" [style.backgroundColor]="hex"
+                        (click)="setColor(hex)">
+                    </div>
+                    }
+                </p-overlayPanel>
+            </div>
+            <div class="col-12 md:col-4">
+                <p-button label="Pick" icon="pi pi-palette" severity="success" />
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<ng-template #colorCard let-shade="shade">
+    <div class="shade color-list border-round-2xl m-0 mb-3 sm:m-1 sm:mb-1 p-1 flex flex-column justify-content-center align-items-center row-gap-3"
+        [style.backgroundColor]="shade.hex" [autoContrast]="shade.hex">
+        <span class="cursor-pointer" (click)="copyColorToClipboard(shade.hex.toUpperCase())">
+            {{ shade.hex | uppercase }}
+        </span>
+        <span class="cursor-pointer" (click)="copyColorToClipboard(shade.rgb)">
+            {{ shade.rgb }}
+        </span>
+        <span class="cursor-pointer" (click)="copyColorToClipboard(shade.hsv)">
+            {{ shade.hsv }}
+        </span>
+        <span class="cursor-pointer" (click)="copyColorToClipboard(shade.hsl)">
+            {{ shade.hsl }}
+        </span>
+    </div>
+</ng-template>

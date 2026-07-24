@@ -12,7 +12,8 @@ export const routes: Routes = [
         title: 'Cem Temuçin | LAB',
         children: [
             { path: '', redirectTo: 'password-generator', pathMatch: 'full' },
-            { path: 'password-generator', loadComponent: () => import('./lab/pages/password-generator/password-generator.component').then(m => m.PasswordGeneratorComponent), title: 'Cem Temuçin | Password Generator' }
+            { path: 'password-generator', loadComponent: () => import('./lab/pages/password-generator/password-generator.component').then(m => m.PasswordGeneratorComponent), title: 'Cem Temuçin | Password Generator' },
+            { path: 'color-generator', loadComponent: () => import('./lab/pages/color-generator/color-generator.component').then(m => m.ColorGeneratorComponent), title: 'Cem Temuçin | Color Generator' },
         ]
     }
 ];
