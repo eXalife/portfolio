@@ -1,72 +1,114 @@
 <div class="col-12 xl:col-10 xl:col-offset-1">
     <div class="card p-fluid">
-        <div class="field col-12 grid">
+        <div class="field col-12 grid p-0">
             <div class="col-12 md:col-4 md:col-offset-4">
-                <div class="main color-list border-round-2xl p-1 text-xl flex flex-column justify-content-center align-items-center row-gap-3"
-                    [style.backgroundColor]="currentColor().hex" [autoContrast]="currentColor().hex">
-                    <span class="cursor-pointer" (click)="copyColorToClipboard(currentColor().hex.toUpperCase())">
-                        {{ currentColor().hex | uppercase }}
-                    </span>
-                    <span class="cursor-pointer" (click)="copyColorToClipboard(currentColor().rgb)">
-                        {{ currentColor().rgb }}
-                    </span>
-                    <span class="cursor-pointer" (click)="copyColorToClipboard(currentColor().hsv)">
-                        {{ currentColor().hsv }}
-                    </span>
-                    <span class="cursor-pointer" (click)="copyColorToClipboard(currentColor().hsl)">
-                        {{ currentColor().hsl }}
-                    </span>
-                </div>
+                <ng-container [ngTemplateOutlet]="colorCard"
+                    [ngTemplateOutletContext]="{ shade: currentColor(), customClass: 'text-xl' }">
+                </ng-container>
             </div>
         </div>
-        <div class="field col-12 grid">
-            <div class="col-12 block sm:hidden">
+
+        <div class="field col-12 grid p-0">
+            <div class="col-12 block sm:hidden p-0">
                 <p-accordion>
                     <p-accordionTab header="Shades">
-                        @for (shade of colorShades(); track shade) {
-                        <ng-container [ngTemplateOutlet]="colorCard"
-                            [ngTemplateOutletContext]="{ shade: shade }"></ng-container>
-                        }
+                        <div class="flex flex-column row-gap-3">
+                            @for (shade of colorShades(); track shade.hex) {
+                            <ng-container [ngTemplateOutlet]="colorCard" [ngTemplateOutletContext]="{ shade: shade }">
+                            </ng-container>
+                            }
+                        </div>
                     </p-accordionTab>
                 </p-accordion>
             </div>
 
-            <div class="col-12 hidden sm:flex flex-wrap">
-                @for (shade of colorShades(); track shade) {
+            <div class="col-12 hidden sm:flex flex-wrap row-gap-3 p-0">
+                @for (shade of colorShades(); track shade.hex) {
                 <div class="col-6 md:col-3">
-                    <ng-container [ngTemplateOutlet]="colorCard"
-                        [ngTemplateOutletContext]="{ shade: shade }"></ng-container>
+                    <ng-container [ngTemplateOutlet]="colorCard" [ngTemplateOutletContext]="{ shade: shade}">
+                    </ng-container>
                 </div>
                 }
             </div>
         </div>
-        <div class="field col-12 grid row-gap-3">
+
+        <div class="field col-12 grid row-gap-3 p-0">
             <div class="col-12 md:col-4">
                 <p-button label="Generate" icon="pi pi-sync" (onClick)="setColor()" />
             </div>
-            <div class="col-12 md:col-4">
-                <p-button (onClick)="op.toggle($event)" icon="pi pi-history" label="History" severity="info" />
-                <p-overlayPanel #op>
+            <div class="col-12 md:col-4" #historyContainer>
+                <p-button (onClick)="historyOp.toggle($event)" icon="pi pi-history" label="History" severity="info" />
+                <p-overlayPanel #historyOp [style]="{ 'width': 'calc(' + historyContainer.offsetWidth + 'px - 1rem)' }">
                     @for (hex of colorHistory(); track $index) {
-                    <div class="cursor-pointer m-1 w-10rem h-2rem" [style.backgroundColor]="hex"
-                        (click)="setColor(hex)">
+                    <div class="cursor-pointer m-1 w-auto h-2rem" [style.backgroundColor]="hex" (click)="setColor(hex)">
                     </div>
                     }
                 </p-overlayPanel>
             </div>
-            <div class="col-12 md:col-4">
-                <p-button label="Pick" icon="pi pi-palette" severity="success" />
+            <div class="col-12 md:col-4" #pickContainer>
+                <p-button (onClick)="pickOp.toggle($event)" label="Pick" icon="pi pi-palette" severity="success" />
+                <p-overlayPanel #pickOp
+                    [style]="{ 'width': 'calc(' + pickContainer.offsetWidth + 'px - 1rem)', 'min-width': '256px' }">
+                    <div class="grid">
+                        <div class="field col-12 p-0 flex justify-content-center">
+                            <p-colorPicker [(ngModel)]="colorPickerColor" [inline]="true"
+                                (ngModelChange)="setColor(colorPickerColor)" />
+                        </div>
+                        <div class="field col-12 p-0">
+                            <p-selectButton [options]="colorPickerOptions" [(ngModel)]="colorPickerType"
+                                optionLabel="label" optionValue="value" unselectable="true"
+                                styleClass="w-full full-width-select-button">
+                            </p-selectButton>
+                        </div>
+                        @switch (colorPickerType) {
+                        @case ('hex') {
+                        <input class="w-full" type="text" pInputText [value]="hexInput"
+                            (input)="onHexInputChange($event)" (focus)="isHexInputFocused = true"
+                            (blur)="onHexInputBlur()" placeholder="FFFFFF" maxlength="6" />
+                        }
+                        @case ('rgb') {
+                        <div class="flex gap-2 w-full">
+                            <input class="w-full" type="number" pInputText [value]="rgbInput.r"
+                                (input)="onRgbInputChange('r', $event)" min="0" max="255" />
+                            <input class="w-full" type="number" pInputText [value]="rgbInput.g"
+                                (input)="onRgbInputChange('g', $event)" min="0" max="255" />
+                            <input class="w-full" type="number" pInputText [value]="rgbInput.b"
+                                (input)="onRgbInputChange('b', $event)" min="0" max="255" />
+                        </div>
+                        }
+                        @case ('hsl') {
+                        <div class="flex gap-2 w-full">
+                            <input class="w-full" type="number" pInputText [value]="hslInput.h"
+                                (input)="onHslInputChange('h', $event)" min="0" max="360" />
+                            <input class="w-full" type="number" pInputText [value]="hslInput.s"
+                                (input)="onHslInputChange('s', $event)" min="0" max="100" />
+                            <input class="w-full" type="number" pInputText [value]="hslInput.l"
+                                (input)="onHslInputChange('l', $event)" min="0" max="100" />
+                        </div>
+                        }
+                        @case ('hsv') {
+                        <div class="flex gap-2 w-full">
+                            <input class="w-full" type="number" pInputText [value]="hsvInput.h"
+                                (input)="onHsvInputChange('h', $event)" min="0" max="360" />
+                            <input class="w-full" type="number" pInputText [value]="hsvInput.s"
+                                (input)="onHsvInputChange('s', $event)" min="0" max="100" />
+                            <input class="w-full" type="number" pInputText [value]="hsvInput.v"
+                                (input)="onHsvInputChange('v', $event)" min="0" max="100" />
+                        </div>
+                        }
+                        }
+                    </div>
+                </p-overlayPanel>
             </div>
         </div>
     </div>
 </div>
 
-
-<ng-template #colorCard let-shade="shade">
-    <div class="shade color-list border-round-2xl m-0 mb-3 sm:m-1 sm:mb-1 p-1 flex flex-column justify-content-center align-items-center row-gap-3"
-        [style.backgroundColor]="shade.hex" [autoContrast]="shade.hex">
+<ng-template #colorCard let-shade="shade" let-customClass="customClass">
+    <div class="color-list border-round-2xl p-1 flex flex-column justify-content-center align-items-center row-gap-3"
+        [class]="customClass" [style.backgroundColor]="shade.hex" [autoContrast]="shade.hex">
         <span class="cursor-pointer" (click)="copyColorToClipboard(shade.hex.toUpperCase())">
-            {{ shade.hex | uppercase }}
+            {{ shade.hex }}
         </span>
         <span class="cursor-pointer" (click)="copyColorToClipboard(shade.rgb)">
             {{ shade.rgb }}

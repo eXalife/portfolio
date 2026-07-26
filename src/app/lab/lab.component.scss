@@ -22,3 +22,13 @@
         stroke: #4c7c9b !important;
     }
 }
+
+.full-width-select-button {
+    display: flex;
+    width: 100%;
+
+    .p-button {
+        flex: 1;
+        justify-content: center;
+    }
+}
