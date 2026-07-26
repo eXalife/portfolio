@@ -28,7 +28,17 @@
             "inlineStyleLanguage": "scss",
             "assets": [
               "src/favicon.png",
-              "src/assets"
+              "src/assets",
+              {
+                "glob": "**/*",
+                "input": "node_modules/primeng/resources/themes/md-dark-indigo",
+                "output": "assets/primeng-themes/md-dark-indigo"
+              },
+              {
+                "glob": "**/*",
+                "input": "node_modules/primeng/resources/themes/md-light-indigo",
+                "output": "assets/primeng-themes/md-light-indigo"
+              }
             ],
             "styles": [
               "src/styles.scss"
