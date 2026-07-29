@@ -1,4 +1,4 @@
-import { Component, AfterViewInit, Inject, PLATFORM_ID } from '@angular/core';
+import { Component, AfterViewInit, OnDestroy, Inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { RouterLink } from "@angular/router";
 
@@ -9,7 +9,10 @@ import { RouterLink } from "@angular/router";
   templateUrl: './main.component.html',
   styleUrl: './main.component.scss'
 })
-export class MainComponent implements AfterViewInit {
+export class MainComponent implements AfterViewInit, OnDestroy {
+  private resizeListener?: () => void;
+  private animationFrameId?: number;
+
   constructor(@Inject(PLATFORM_ID) private platformId: Object) { }
 
   ngAfterViewInit(): void {
@@ -18,8 +21,21 @@ export class MainComponent implements AfterViewInit {
     }
   }
 
+  ngOnDestroy(): void {
+    if (isPlatformBrowser(this.platformId)) {
+      if (this.resizeListener) {
+        window.removeEventListener('resize', this.resizeListener);
+      }
+      if (this.animationFrameId) {
+        cancelAnimationFrame(this.animationFrameId);
+      }
+    }
+  }
+
   stars(): void {
     const canvas = document.getElementById('scene') as HTMLCanvasElement;
+    if (!canvas) return;
+
     const ctx = canvas.getContext('2d')!;
 
     interface Star {
@@ -45,7 +61,7 @@ export class MainComponent implements AfterViewInit {
       };
     }
 
-    function resize() {
+    this.resizeListener = () => {
       const oldWidth = canvas.width > 0 ? canvas.width : window.innerWidth;
       const oldHeight = canvas.height > 0 ? canvas.height : window.innerHeight;
 
@@ -55,33 +71,29 @@ export class MainComponent implements AfterViewInit {
       canvas.width = newWidth;
       canvas.height = newHeight;
 
-      // Calculate star density based on combined window dimensions
       const targetCount = Math.floor((newWidth + newHeight) / 6);
 
-      // Scale existing star coordinates to maintain relative positions across resizes
       for (let i = 0; i < starArray.length; i++) {
         const star = starArray[i];
         star.startX = (star.startX / oldWidth) * newWidth;
         star.startY = (star.startY / oldHeight) * newHeight;
       }
 
-      // Populate missing stars if window expanded
       while (starArray.length < targetCount) {
         starArray.push(createStar());
       }
 
-      // Trim excess stars if window contracted
       if (starArray.length > targetCount) {
         starArray.length = targetCount;
       }
-    }
+    };
 
-    resize();
-    window.addEventListener('resize', resize);
+    this.resizeListener();
+    window.addEventListener('resize', this.resizeListener);
 
     let lastTime = performance.now();
 
-    function animate() {
+    const animate = () => {
       const currentTime = performance.now();
       const deltaTime = currentTime - lastTime;
       lastTime = currentTime;
@@ -120,8 +132,8 @@ export class MainComponent implements AfterViewInit {
         ctx.fill();
       }
 
-      requestAnimationFrame(animate);
-    }
+      this.animationFrameId = requestAnimationFrame(animate);
+    };
 
     animate();
   }
