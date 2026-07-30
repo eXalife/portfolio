@@ -1,0 +1,42 @@
+<div class="p-fluid col-12 xl:col-8 xl:col-offset-2">
+    <div class="card flex flex-column row-gap-3">
+        <h5>Number Generator</h5>
+        <p>
+            Bounds enforced between <span class="number-font text-xl">{{ minSafe | number }}</span> and
+            <span class="number-font text-xl">{{ maxSafe | number }}</span>
+        </p>
+        <div class="field col-12 p-0">
+            <p-floatLabel>
+                <input pInputText class="number-font text-xl" id="min" type="text" inputmode="numeric"
+                    [ngModel]="minInput" (input)="allowOnlyNumbers('min', $event)" />
+                <label for="min">Min</label>
+            </p-floatLabel>
+        </div>
+        <div class="field col-12 p-0">
+            <p-floatLabel>
+                <input pInputText class="number-font text-xl" id="max" type="text" inputmode="numeric"
+                    [ngModel]="maxInput" (input)="allowOnlyNumbers('max', $event)" />
+                <label for="max">Max</label>
+            </p-floatLabel>
+        </div>
+        <div class="field col-12 p-0">
+            <p-fieldset legend="Number" styleClass="no-padding-fieldset">
+                <p class="display number-font text-3xl">{{ randomNumber() | number }}</p>
+            </p-fieldset>
+        </div>
+        <div class="field col-12 p-0">
+            <p-fieldset legend="In Words" styleClass="no-padding-fieldset">
+                <p class="display number-font text-2xl">{{ numberToWords(randomNumber()) }}</p>
+            </p-fieldset>
+        </div>
+    </div>
+    <div class="field col p-0 grid row-gap-3">
+        <div class="col-12 md:col-6">
+            <p-button label="Generate" icon="pi pi-sync" (onClick)="generateNumber()"
+                [disabled]="!minInput || !maxInput" />
+        </div>
+        <div class="col-12 md:col-6">
+            <p-button label="Reset" icon="pi pi-clipboard" severity="danger" (onClick)="reset()" />
+        </div>
+    </div>
+</div>

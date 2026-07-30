@@ -2,7 +2,7 @@ import { animate, state, style, transition, trigger } from '@angular/animations'
 import { NgClass, NgFor, NgIf, NgTemplateOutlet } from '@angular/common';
 import { Component, ElementRef, OnDestroy, OnInit } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
-import { MenuItem, PrimeIcons } from 'primeng/api';
+import { MenuItem } from 'primeng/api';
 import { filter, Subscription } from 'rxjs';
 import { LayoutService } from '../../service/layout.service';
 
@@ -31,9 +31,10 @@ export class SidebarComponent implements OnInit, OnDestroy {
     this.model = [{
       label: 'Pages',
       items: [{
-        label: 'Generators', icon: `pi-fw ${PrimeIcons.CHEVRON_RIGHT}`, items: [
-          { label: 'Password Generator', icon: `pi-fw ${PrimeIcons.KEY}`, routerLink: ['password-generator'] },
-          { label: 'Color Generator', icon: `pi-fw ${PrimeIcons.PALETTE}`, routerLink: ['color-generator'] }
+        label: 'Generators', icon: 'pi-fw pi pi-chevron-right', items: [
+          { label: 'Password Generator', icon: 'pi-fw pi pi-key', routerLink: ['password-generator'] },
+          { label: 'Color Generator', icon: 'pi-fw pi pi-palette', routerLink: ['color-generator'] },
+          { label: 'Number Generator', icon: 'pi-fw pi pi-asterisk', routerLink: ['number-generator'] }
         ]
       }]
     }];
