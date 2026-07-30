@@ -1,18 +1,20 @@
 import { ElementRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { provideRouter } from '@angular/router';
 import { MessageService, PrimeNGConfig } from 'primeng/api';
-import { Subject } from 'rxjs';
+import { BehaviorSubject, Subject } from 'rxjs';
 import { LayoutService } from '../service/layout.service';
 import { LabComponent } from './lab.component';
-import { provideNoopAnimations } from '@angular/platform-browser/animations';
 
 class MockLayoutService {
   isBrowser = true;
-  overlayOpen$ = new Subject<void>();
 
+  overlayOpen$ = new Subject<void>();
   configUpdate$ = new Subject<any>();
   stateChanged$ = new Subject<any>();
+
+  themeLink$ = new BehaviorSubject<string>('assets/theme.css');
 
   state = {
     staticMenuMobileActive: false,
@@ -43,14 +45,19 @@ describe('LabComponent', () => {
   let fixture: ComponentFixture<LabComponent>;
   let layoutService: MockLayoutService;
   let primengConfig: MockPrimeNGConfig;
+  let messageServiceSpy: jasmine.SpyObj<MessageService>;
 
   beforeEach(async () => {
+    const msgSpy = jasmine.createSpyObj('MessageService', ['add']);
+    msgSpy.messageObserver = new Subject<any>();
+    msgSpy.clearObserver = new Subject<any>();
+
     await TestBed.configureTestingModule({
       imports: [LabComponent],
       providers: [
         provideRouter([]),
         provideNoopAnimations(),
-        MessageService,
+        { provide: MessageService, useValue: msgSpy },
         { provide: LayoutService, useClass: MockLayoutService },
         { provide: PrimeNGConfig, useClass: MockPrimeNGConfig }
       ]
@@ -60,6 +67,7 @@ describe('LabComponent', () => {
     component = fixture.componentInstance;
     layoutService = TestBed.inject(LayoutService) as unknown as MockLayoutService;
     primengConfig = TestBed.inject(PrimeNGConfig) as unknown as MockPrimeNGConfig;
+    messageServiceSpy = TestBed.inject(MessageService) as jasmine.SpyObj<MessageService>;
 
     component.appSidebar = {
       el: new ElementRef(document.createElement('div'))
@@ -75,7 +83,7 @@ describe('LabComponent', () => {
   });
 
   afterEach(() => {
-    // Cleanup body classes after manuplations
+    // Cleanup body classes after manipulations
     document.body.classList.remove('blocked-scroll');
   });
 
@@ -95,11 +103,24 @@ describe('LabComponent', () => {
       const ssrPrimengConfig = new MockPrimeNGConfig();
       const renderer = jasmine.createSpyObj('Renderer2', ['listen']);
 
+      const documentMock = {
+        head: {
+          querySelector: jasmine.createSpy('querySelector').and.returnValue(null),
+          appendChild: jasmine.createSpy('appendChild')
+        },
+        createElement: jasmine.createSpy('createElement').and.returnValue({})
+      };
+
+      const routerMock = {};
+      const sanitizerMock = { bypassSecurityTrustResourceUrl: (val: string) => val };
+
       const ssrComponent = new LabComponent(
+        documentMock as any,
         ssrLayoutService as any,
         renderer,
-        {} as any,
-        ssrPrimengConfig as any
+        routerMock as any,
+        ssrPrimengConfig as any,
+        sanitizerMock as any
       );
 
       expect(ssrPrimengConfig.ripple).toBeFalse();

@@ -132,12 +132,12 @@ export class ColorGeneratorComponent {
   }
 
   onRgbInputChange(field: 'r' | 'g' | 'b', event: Event) {
-    const inputElement = event.target as HTMLInputElement;
-    if (inputElement.value === '') return;
+    const input = event.target as HTMLInputElement;
+    if (input.value === '') return;
 
-    const clampedValue = this.clamp(Number(inputElement.value), 0, 255);
-    if (Number(inputElement.value) !== clampedValue) {
-      inputElement.value = clampedValue.toString();
+    const clampedValue = this.clamp(Number(input.value), 0, 255);
+    if (Number(input.value) !== clampedValue) {
+      input.value = clampedValue.toString();
     }
 
     this.rgbInput[field] = clampedValue;
@@ -146,13 +146,13 @@ export class ColorGeneratorComponent {
   }
 
   onHslInputChange(field: 'h' | 's' | 'l', event: Event) {
-    const inputElement = event.target as HTMLInputElement;
-    if (inputElement.value === '') return;
+    const input = event.target as HTMLInputElement;
+    if (input.value === '') return;
 
     const max = field === 'h' ? 360 : 100;
-    const clampedValue = this.clamp(Number(inputElement.value), 0, max);
-    if (Number(inputElement.value) !== clampedValue) {
-      inputElement.value = clampedValue.toString();
+    const clampedValue = this.clamp(Number(input.value), 0, max);
+    if (Number(input.value) !== clampedValue) {
+      input.value = clampedValue.toString();
     }
 
     this.hslInput[field] = clampedValue;
@@ -161,13 +161,13 @@ export class ColorGeneratorComponent {
   }
 
   onHsvInputChange(field: 'h' | 's' | 'v', event: Event) {
-    const inputElement = event.target as HTMLInputElement;
-    if (inputElement.value === '') return;
+    const input = event.target as HTMLInputElement;
+    if (input.value === '') return;
 
     const max = field === 'h' ? 360 : 100;
-    const clampedValue = this.clamp(Number(inputElement.value), 0, max);
-    if (Number(inputElement.value) !== clampedValue) {
-      inputElement.value = clampedValue.toString();
+    const clampedValue = this.clamp(Number(input.value), 0, max);
+    if (Number(input.value) !== clampedValue) {
+      input.value = clampedValue.toString();
     }
 
     this.hsvInput[field] = clampedValue;

@@ -23,6 +23,17 @@
     }
 }
 
+.no-padding-fieldset {
+    .p-fieldset-legend {
+        padding: 0.5rem;
+    }
+
+    .p-fieldset-content {
+        padding: 0 0.5rem;
+    }
+}
+
+
 .full-width-select-button {
     display: flex;
     width: 100%;

@@ -1,5 +1,6 @@
-<div class="col-12 xl:col-10 xl:col-offset-1">
-    <div class="card p-fluid">
+<div class="p-fluid col-12 xl:col-10 xl:col-offset-1">
+    <div class="card flex flex-column row-gap-3">
+        <h5>Color Generator</h5>
         <div class="field col-12 grid p-0">
             <div class="col-12 md:col-4 md:col-offset-4">
                 <ng-container [ngTemplateOutlet]="colorCard"
@@ -7,7 +8,6 @@
                 </ng-container>
             </div>
         </div>
-
         <div class="field col-12 grid p-0">
             <div class="col-12 block sm:hidden p-0">
                 <p-accordion>
@@ -31,75 +31,73 @@
                 }
             </div>
         </div>
-
-        <div class="field col-12 grid row-gap-3 p-0">
-            <div class="col-12 md:col-4">
-                <p-button label="Generate" icon="pi pi-sync" (onClick)="setColor()" />
-            </div>
-            <div class="col-12 md:col-4" #historyContainer>
-                <p-button (onClick)="historyOp.toggle($event)" icon="pi pi-history" label="History" severity="info" />
-                <p-overlayPanel #historyOp [style]="{ 'width': 'calc(' + historyContainer.offsetWidth + 'px - 1rem)' }">
-                    @for (hex of colorHistory(); track $index) {
-                    <div class="cursor-pointer m-1 w-auto h-2rem" [style.backgroundColor]="hex" (click)="setColor(hex)">
+    </div>
+    <div class="field col grid row-gap-3 p-0">
+        <div class="col-12 md:col-4">
+            <p-button label="Generate" icon="pi pi-sync" (onClick)="setColor()" />
+        </div>
+        <div class="col-12 md:col-4" #historyContainer>
+            <p-button (onClick)="historyOp.toggle($event)" icon="pi pi-history" label="History" severity="info" />
+            <p-overlayPanel #historyOp [style]="{ 'width': 'calc(' + historyContainer.offsetWidth + 'px - 1rem)' }">
+                @for (hex of colorHistory(); track $index) {
+                <div class="cursor-pointer m-1 w-auto h-2rem" [style.backgroundColor]="hex" (click)="setColor(hex)">
+                </div>
+                }
+            </p-overlayPanel>
+        </div>
+        <div class="col-12 md:col-4" #pickContainer>
+            <p-button (onClick)="pickOp.toggle($event)" label="Pick" icon="pi pi-palette" severity="success" />
+            <p-overlayPanel #pickOp
+                [style]="{ 'width': 'calc(' + pickContainer.offsetWidth + 'px - 1rem)', 'min-width': '256px' }">
+                <div class="grid">
+                    <div class="field col-12 p-0 flex justify-content-center">
+                        <p-colorPicker [(ngModel)]="colorPickerColor" [inline]="true"
+                            (ngModelChange)="setColor(colorPickerColor)" />
+                    </div>
+                    <div class="field col-12 p-0">
+                        <p-selectButton [options]="colorPickerOptions" [(ngModel)]="colorPickerType" optionLabel="label"
+                            optionValue="value" unselectable="true" styleClass="w-full full-width-select-button">
+                        </p-selectButton>
+                    </div>
+                    @switch (colorPickerType) {
+                    @case ('hex') {
+                    <input class="w-full" type="text" pInputText [value]="hexInput" (input)="onHexInputChange($event)"
+                        (focus)="isHexInputFocused = true" (blur)="onHexInputBlur()" placeholder="FFFFFF"
+                        maxlength="6" />
+                    }
+                    @case ('rgb') {
+                    <div class="flex gap-2 w-full">
+                        <input class="w-full" type="number" pInputText [value]="rgbInput.r"
+                            (input)="onRgbInputChange('r', $event)" min="0" max="255" />
+                        <input class="w-full" type="number" pInputText [value]="rgbInput.g"
+                            (input)="onRgbInputChange('g', $event)" min="0" max="255" />
+                        <input class="w-full" type="number" pInputText [value]="rgbInput.b"
+                            (input)="onRgbInputChange('b', $event)" min="0" max="255" />
                     </div>
                     }
-                </p-overlayPanel>
-            </div>
-            <div class="col-12 md:col-4" #pickContainer>
-                <p-button (onClick)="pickOp.toggle($event)" label="Pick" icon="pi pi-palette" severity="success" />
-                <p-overlayPanel #pickOp
-                    [style]="{ 'width': 'calc(' + pickContainer.offsetWidth + 'px - 1rem)', 'min-width': '256px' }">
-                    <div class="grid">
-                        <div class="field col-12 p-0 flex justify-content-center">
-                            <p-colorPicker [(ngModel)]="colorPickerColor" [inline]="true"
-                                (ngModelChange)="setColor(colorPickerColor)" />
-                        </div>
-                        <div class="field col-12 p-0">
-                            <p-selectButton [options]="colorPickerOptions" [(ngModel)]="colorPickerType"
-                                optionLabel="label" optionValue="value" unselectable="true"
-                                styleClass="w-full full-width-select-button">
-                            </p-selectButton>
-                        </div>
-                        @switch (colorPickerType) {
-                        @case ('hex') {
-                        <input class="w-full" type="text" pInputText [value]="hexInput"
-                            (input)="onHexInputChange($event)" (focus)="isHexInputFocused = true"
-                            (blur)="onHexInputBlur()" placeholder="FFFFFF" maxlength="6" />
-                        }
-                        @case ('rgb') {
-                        <div class="flex gap-2 w-full">
-                            <input class="w-full" type="number" pInputText [value]="rgbInput.r"
-                                (input)="onRgbInputChange('r', $event)" min="0" max="255" />
-                            <input class="w-full" type="number" pInputText [value]="rgbInput.g"
-                                (input)="onRgbInputChange('g', $event)" min="0" max="255" />
-                            <input class="w-full" type="number" pInputText [value]="rgbInput.b"
-                                (input)="onRgbInputChange('b', $event)" min="0" max="255" />
-                        </div>
-                        }
-                        @case ('hsl') {
-                        <div class="flex gap-2 w-full">
-                            <input class="w-full" type="number" pInputText [value]="hslInput.h"
-                                (input)="onHslInputChange('h', $event)" min="0" max="360" />
-                            <input class="w-full" type="number" pInputText [value]="hslInput.s"
-                                (input)="onHslInputChange('s', $event)" min="0" max="100" />
-                            <input class="w-full" type="number" pInputText [value]="hslInput.l"
-                                (input)="onHslInputChange('l', $event)" min="0" max="100" />
-                        </div>
-                        }
-                        @case ('hsv') {
-                        <div class="flex gap-2 w-full">
-                            <input class="w-full" type="number" pInputText [value]="hsvInput.h"
-                                (input)="onHsvInputChange('h', $event)" min="0" max="360" />
-                            <input class="w-full" type="number" pInputText [value]="hsvInput.s"
-                                (input)="onHsvInputChange('s', $event)" min="0" max="100" />
-                            <input class="w-full" type="number" pInputText [value]="hsvInput.v"
-                                (input)="onHsvInputChange('v', $event)" min="0" max="100" />
-                        </div>
-                        }
-                        }
+                    @case ('hsl') {
+                    <div class="flex gap-2 w-full">
+                        <input class="w-full" type="number" pInputText [value]="hslInput.h"
+                            (input)="onHslInputChange('h', $event)" min="0" max="360" />
+                        <input class="w-full" type="number" pInputText [value]="hslInput.s"
+                            (input)="onHslInputChange('s', $event)" min="0" max="100" />
+                        <input class="w-full" type="number" pInputText [value]="hslInput.l"
+                            (input)="onHslInputChange('l', $event)" min="0" max="100" />
                     </div>
-                </p-overlayPanel>
-            </div>
+                    }
+                    @case ('hsv') {
+                    <div class="flex gap-2 w-full">
+                        <input class="w-full" type="number" pInputText [value]="hsvInput.h"
+                            (input)="onHsvInputChange('h', $event)" min="0" max="360" />
+                        <input class="w-full" type="number" pInputText [value]="hsvInput.s"
+                            (input)="onHsvInputChange('s', $event)" min="0" max="100" />
+                        <input class="w-full" type="number" pInputText [value]="hsvInput.v"
+                            (input)="onHsvInputChange('v', $event)" min="0" max="100" />
+                    </div>
+                    }
+                    }
+                </div>
+            </p-overlayPanel>
         </div>
     </div>
 </div>

@@ -94,17 +94,7 @@ export class PasswordGeneratorComponent implements OnInit {
     if (this.includeLowercase) activeSets.push(this.lowercaseChars);
     if (this.includeNumbers) activeSets.push(this.numberChars);
     if (this.includeSymbols) activeSets.push(this.symbolChars);
-    if (this.customize && this.customChars) {
-      // remove duplicate characters from customChars
-      const uniqueChars = Array.from(new Set(this.customChars)).join('');
-      activeSets.push(uniqueChars);
-      if (uniqueChars.length !== this.customChars.length) {
-        this.messageService.add({ severity: 'info', summary: 'Info', detail: 'Duplicate characters removed from custom characters' });
-      }
-      setTimeout(() => {
-        this.customChars = uniqueChars;
-      });
-    }
+    if (this.customize && this.customChars) activeSets.push(this.customChars);
 
     const characters = activeSets.join('');
     if (!characters) {
@@ -132,15 +122,30 @@ export class PasswordGeneratorComponent implements OnInit {
     this.password = passwordArray.join('');
   }
 
+  onCustomCharsInput(event: Event) {
+    const input = event.target as HTMLTextAreaElement;
+    const uniqueChars = Array.from(new Set(input.value)).join('');
+
+    if (uniqueChars.length !== input.value.length) {
+      this.messageService.add({ severity: 'info', summary: 'Info', detail: 'Duplicate characters not allowed for custom characters' });
+      input.value = uniqueChars;
+    }
+
+    this.customChars = uniqueChars;
+
+    this.generatePassword();
+  }
+
   // generates a cryptographically secure random index with zero modulo bias.
   private getSecureRandomIndex(max: number): number {
     if (max <= 0) return 0;
     const randomBuffer = new Uint32Array(1);
-    const MAX_UINT32 = 4294967296; // total count of possible values
-    const limit = MAX_UINT32 - (MAX_UINT32 % max);
+    const UINT32_RANGE = 4294967296; // total count of possible values
+    const limit = UINT32_RANGE - (UINT32_RANGE % max);
 
     let randomValue: number;
     do {
+      // reject biased values
       window.crypto.getRandomValues(randomBuffer);
       randomValue = randomBuffer[0];
     } while (randomValue >= limit);

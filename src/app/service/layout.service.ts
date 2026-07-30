@@ -1,6 +1,7 @@
 import { Inject, Injectable, PLATFORM_ID, effect, signal } from '@angular/core';
 import { Subject } from 'rxjs';
 import { DOCUMENT, isPlatformBrowser } from '@angular/common';
+import { toObservable } from '@angular/core/rxjs-interop';
 
 export interface AppConfig {
     inputStyle: string;
@@ -54,6 +55,9 @@ export class LayoutService {
 
     isBrowser!: boolean;
 
+    private themeLink = signal<string>('assets/primeng-themes/md-light-indigo/theme.css');
+    themeLink$ = toObservable(this.themeLink);
+
     constructor(@Inject(DOCUMENT) private document: Document, @Inject(PLATFORM_ID) private platformId: Object) {
         this.isBrowser = isPlatformBrowser(this.platformId);
 
@@ -67,11 +71,6 @@ export class LayoutService {
 
         if (this.isBrowser) {
             const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            const themeLink: HTMLLinkElement = this.document.createElement('link');
-            themeLink.id = 'theme-css';
-            themeLink.rel = 'stylesheet';
-            themeLink.type = 'text/css';
-
             const themeFromStorage = localStorage.getItem('theme');
             if ((!themeFromStorage && !prefersDark) || themeFromStorage === 'light') {
                 this.config.update((config) => ({
@@ -79,17 +78,15 @@ export class LayoutService {
                     theme: 'md-light-indigo',
                     colorScheme: 'light'
                 }));
-                themeLink.href = 'assets/primeng-themes/md-light-indigo/theme.css';
+                this.themeLink.set('assets/primeng-themes/md-light-indigo/theme.css');
             } else if ((!themeFromStorage && prefersDark) || themeFromStorage === 'dark') {
                 this.config.update((config) => ({
                     ...config,
                     theme: 'md-dark-indigo',
                     colorScheme: 'dark'
                 }));
-                themeLink.href = 'assets/primeng-themes/md-dark-indigo/theme.css';
+                this.themeLink.set('assets/primeng-themes/md-dark-indigo/theme.css');
             }
-
-            this.document.head.appendChild(themeLink);
         }
     }
 
@@ -169,21 +166,12 @@ export class LayoutService {
             .join('/');
         this.replaceThemeLink(newHref);
     }
+
     replaceThemeLink(href: string) {
-        const id = 'theme-css';
-        let themeLink = <HTMLLinkElement>document.getElementById(id);
-        const cloneLinkElement = <HTMLLinkElement>themeLink.cloneNode(true);
+        const themeLink = document.getElementById('theme-css') as HTMLLinkElement;
 
-        cloneLinkElement.setAttribute('href', href);
-        cloneLinkElement.setAttribute('id', id + '-clone');
-
-        themeLink.parentNode!.insertBefore(
-            cloneLinkElement,
-            themeLink.nextSibling
-        );
-        cloneLinkElement.addEventListener('load', () => {
-            themeLink.remove();
-            cloneLinkElement.setAttribute('id', id);
-        });
+        if (themeLink) {
+            themeLink.setAttribute('href', href);
+        }
     }
 }

@@ -8,29 +8,29 @@ import { provideNoopAnimations } from '@angular/platform-browser/animations';
 describe('PasswordGeneratorComponent', () => {
   let component: PasswordGeneratorComponent;
   let fixture: ComponentFixture<PasswordGeneratorComponent>;
-  let layoutService: LayoutService;
-  let messageService: MessageService;
+  let layoutServiceMock: any;
+  let messageServiceSpy: jasmine.SpyObj<MessageService>;
 
   beforeEach(async () => {
+    const msgSpy = jasmine.createSpyObj('MessageService', ['add']);
+    const layoutSpy = { isBrowser: true };
+
     await TestBed.configureTestingModule({
       imports: [PasswordGeneratorComponent],
       providers: [
         provideRouter([]),
         provideNoopAnimations(),
-        MessageService
+        { provide: MessageService, useValue: msgSpy },
+        { provide: LayoutService, useValue: layoutSpy }
       ]
     }).compileComponents();
 
     fixture = TestBed.createComponent(PasswordGeneratorComponent);
     component = fixture.componentInstance;
-    layoutService = TestBed.inject(LayoutService);
-    messageService = TestBed.inject(MessageService);
 
-    spyOn(messageService, 'add');
+    layoutServiceMock = TestBed.inject(LayoutService);
+    messageServiceSpy = TestBed.inject(MessageService) as jasmine.SpyObj<MessageService>;
 
-    layoutService.isBrowser = true;
-
-    // Mock window.crypto if running in an environment without it (like older JSDOM)
     if (!window.crypto || !window.crypto.getRandomValues) {
       Object.defineProperty(window, 'crypto', {
         value: {
@@ -60,7 +60,7 @@ describe('PasswordGeneratorComponent', () => {
     });
 
     it('should NOT generate password on initialization in SSR environment', () => {
-      layoutService.isBrowser = false;
+      layoutServiceMock.isBrowser = false;
       component.password = '';
 
       component.ngOnInit();
@@ -125,20 +125,21 @@ describe('PasswordGeneratorComponent', () => {
   });
 
   describe('Custom Characters Logic', () => {
-    it('should remove duplicate custom characters and show info message', fakeAsync(() => {
+    it('should remove duplicate custom characters and show info message', () => {
       component.customize = true;
-      component.customChars = 'aabbccddee';
-      component.generatePassword();
 
-      expect(messageService.add).toHaveBeenCalledWith(jasmine.objectContaining({
+      const mockEvent = { target: { value: 'aabbccddee' } } as unknown as Event;
+
+      component.onCustomCharsInput(mockEvent);
+
+      expect(messageServiceSpy.add).toHaveBeenCalledWith(jasmine.objectContaining({
         severity: 'info',
-        detail: 'Duplicate characters removed from custom characters'
+        summary: 'Info',
+        detail: 'Duplicate characters not allowed for custom characters'
       }));
 
-      tick();
-
       expect(component.customChars).toBe('abcde');
-    }));
+    });
   });
 
   describe('Clipboard Operations', () => {
@@ -158,7 +159,7 @@ describe('PasswordGeneratorComponent', () => {
       tick();
 
       expect(navigator.clipboard.writeText).toHaveBeenCalledWith('TestPassword123!');
-      expect(messageService.add).toHaveBeenCalledWith(jasmine.objectContaining({
+      expect(messageServiceSpy.add).toHaveBeenCalledWith(jasmine.objectContaining({
         severity: 'success',
         summary: 'Success'
       }));
@@ -180,7 +181,7 @@ describe('PasswordGeneratorComponent', () => {
 
       tick();
 
-      expect(messageService.add).toHaveBeenCalledWith(jasmine.objectContaining({
+      expect(messageServiceSpy.add).toHaveBeenCalledWith(jasmine.objectContaining({
         severity: 'error',
         summary: 'Error'
       }));
@@ -197,7 +198,7 @@ describe('PasswordGeneratorComponent', () => {
       }
 
       expect(component.maxPasswordLength).toBe(16384);
-      expect(messageService.add).toHaveBeenCalledWith(jasmine.objectContaining({
+      expect(messageServiceSpy.add).toHaveBeenCalledWith(jasmine.objectContaining({
         severity: 'contrast',
         summary: 'Easter Egg Unlocked!'
       }));

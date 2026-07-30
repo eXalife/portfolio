@@ -1,6 +1,6 @@
-import { NgClass } from '@angular/common';
-import { Component, Renderer2, ViewChild, ViewEncapsulation } from '@angular/core';
-import { Router, RouterOutlet } from '@angular/router';
+import { DOCUMENT, NgClass } from '@angular/common';
+import { Component, Inject, Renderer2, ViewChild, ViewEncapsulation } from '@angular/core';
+import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { BlockUIModule } from 'primeng/blockui';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { ToastModule } from 'primeng/toast';
@@ -9,7 +9,8 @@ import { FooterComponent } from './footer/footer.component';
 import { SidebarComponent } from './sidebar/sidebar.component';
 import { TopbarComponent } from './topbar/topbar.component';
 import { PrimeNGConfig } from 'primeng/api';
-import { Subscription } from 'rxjs';
+import { filter, Subscription } from 'rxjs';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-lab',
@@ -22,6 +23,8 @@ import { Subscription } from 'rxjs';
 export class LabComponent {
   loading = false;
 
+  themeUrl!: SafeResourceUrl;
+
   overlayMenuOpenSubscription?: Subscription;
 
   menuOutsideClickListener: any;
@@ -32,8 +35,16 @@ export class LabComponent {
 
   @ViewChild(TopbarComponent) appTopbar!: TopbarComponent;
 
-  constructor(private layoutService: LayoutService, private renderer: Renderer2, private router: Router, private primengConfig: PrimeNGConfig) {
+  constructor(@Inject(DOCUMENT) private document: Document, private layoutService: LayoutService, private renderer: Renderer2, private router: Router, private primengConfig: PrimeNGConfig, private sanitizer: DomSanitizer) {
+    this.layoutService.themeLink$.subscribe(themeLink => {
+      this.themeUrl = this.sanitizer.bypassSecurityTrustResourceUrl(themeLink);
+    });
+
+    this.addPreloadLink('assets/primeng-themes/md-light-indigo/theme.css');
+    this.addPreloadLink('assets/primeng-themes/md-dark-indigo/theme.css');
+
     if (this.layoutService.isBrowser) {
+
       this.primengConfig.ripple = true;
 
       this.overlayMenuOpenSubscription = this.layoutService.overlayOpen$.subscribe(() => {
@@ -63,6 +74,24 @@ export class LabComponent {
           this.blockBodyScroll();
         }
       });
+
+      this.router.events.pipe(filter(event => event instanceof NavigationEnd)).subscribe(() => {
+        this.hideMenu();
+        this.hideProfileMenu();
+      });
+    }
+  }
+
+  private addPreloadLink(href: string): void {
+    const existingLink = this.document.head.querySelector(`link[rel="preload"][href="${href}"]`);
+
+    if (!existingLink) {
+      const link = this.document.createElement('link');
+      link.rel = 'preload';
+      link.as = 'style';
+      link.href = href;
+
+      this.document.head.appendChild(link);
     }
   }
 

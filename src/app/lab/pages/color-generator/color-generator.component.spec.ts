@@ -7,29 +7,32 @@ import { ColorGeneratorComponent, ColorType } from './color-generator.component'
 describe('ColorGeneratorComponent', () => {
   let component: ColorGeneratorComponent;
   let fixture: ComponentFixture<ColorGeneratorComponent>;
-  let messageService: MessageService;
+  let messageServiceSpy: jasmine.SpyObj<MessageService>;
 
   beforeEach(async () => {
+    const msgSpy = jasmine.createSpyObj('MessageService', ['add']);
+
     await TestBed.configureTestingModule({
       imports: [ColorGeneratorComponent],
       providers: [
         provideRouter([]),
         provideNoopAnimations(),
-        MessageService
+        { provide: MessageService, useValue: msgSpy }
       ]
     }).compileComponents();
 
     fixture = TestBed.createComponent(ColorGeneratorComponent);
     component = fixture.componentInstance;
 
-    messageService = TestBed.inject(MessageService);
-    spyOn(messageService, 'add');
+    messageServiceSpy = TestBed.inject(MessageService) as jasmine.SpyObj<MessageService>;
 
-    if (jasmine.isSpy(navigator.clipboard.writeText)) {
-      (navigator.clipboard.writeText as jasmine.Spy).and.returnValue(Promise.resolve());
-    } else {
-      spyOn(navigator.clipboard, 'writeText').and.returnValue(Promise.resolve());
-    }
+    const mockClipboard = {
+      writeText: jasmine.createSpy('writeText').and.returnValue(Promise.resolve())
+    };
+    Object.defineProperty(navigator, 'clipboard', {
+      value: mockClipboard,
+      configurable: true
+    });
 
     fixture.detectChanges();
   });
@@ -117,7 +120,7 @@ describe('ColorGeneratorComponent', () => {
 
       tick();
 
-      expect(messageService.add).toHaveBeenCalledWith({
+      expect(messageServiceSpy.add).toHaveBeenCalledWith({
         severity: 'success',
         summary: '#FFFFFF',
         detail: 'Copied to clipboard'
