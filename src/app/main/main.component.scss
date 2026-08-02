@@ -20,7 +20,9 @@ $base-color: #3affd0;
     margin: 1rem;
     z-index: 1;
     overflow: hidden;
-    animation: zoomIn 1s ease;
+    transform: scale(0);
+    opacity: 0;
+    animation: zoomIn 1s ease forwards;
 
     div {
         opacity: 0;
