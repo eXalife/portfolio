@@ -11,7 +11,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { InputTextareaModule } from 'primeng/inputtextarea';
 import { SliderModule } from 'primeng/slider';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
-import { LayoutService } from '../../../service/layout.service';
+import { LayoutService } from '../../service/layout.service';
 
 @Component({
   selector: 'app-password-generator',

@@ -1,11 +1,11 @@
-import { ElementRef } from '@angular/core';
+import { ElementRef, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { provideRouter } from '@angular/router';
 import { MessageService, PrimeNGConfig } from 'primeng/api';
-import { BehaviorSubject, Subject } from 'rxjs';
-import { LayoutService } from '../service/layout.service';
+import { Subject } from 'rxjs';
 import { LabComponent } from './lab.component';
+import { LayoutService } from './service/layout.service';
 
 class MockLayoutService {
   isBrowser = true;
@@ -14,7 +14,8 @@ class MockLayoutService {
   configUpdate$ = new Subject<any>();
   stateChanged$ = new Subject<any>();
 
-  themeLink$ = new BehaviorSubject<string>('assets/theme.css');
+  loading = signal(false);
+  themeLink = signal('assets/theme.css');
 
   state = {
     staticMenuMobileActive: false,
@@ -24,16 +25,12 @@ class MockLayoutService {
     staticMenuDesktopInactive: false
   };
 
-  _config = {
+  config = signal({
     colorScheme: 'light',
     menuMode: 'static',
     inputStyle: 'filled',
     ripple: true
-  };
-
-  config() {
-    return this._config;
-  }
+  });
 }
 
 class MockPrimeNGConfig {
@@ -108,10 +105,12 @@ describe('LabComponent', () => {
           querySelector: jasmine.createSpy('querySelector').and.returnValue(null),
           appendChild: jasmine.createSpy('appendChild')
         },
-        createElement: jasmine.createSpy('createElement').and.returnValue({})
+        createElement: jasmine.createSpy('createElement').and.returnValue({
+          setAttribute: jasmine.createSpy('setAttribute')
+        })
       };
 
-      const routerMock = {};
+      const routerMock = { events: new Subject() };
       const sanitizerMock = { bypassSecurityTrustResourceUrl: (val: string) => val };
 
       const ssrComponent = new LabComponent(
@@ -226,10 +225,12 @@ describe('LabComponent', () => {
 
   describe('Getters', () => {
     it('should return the correct containerClass object based on layout configuration', () => {
-      layoutService._config.colorScheme = 'dark';
-      layoutService._config.menuMode = 'overlay';
-      layoutService._config.inputStyle = 'filled';
-      layoutService._config.ripple = false;
+      layoutService.config.set({
+        colorScheme: 'dark',
+        menuMode: 'overlay',
+        inputStyle: 'filled',
+        ripple: false
+      });
 
       layoutService.state.overlayMenuActive = true;
       layoutService.state.staticMenuMobileActive = true;

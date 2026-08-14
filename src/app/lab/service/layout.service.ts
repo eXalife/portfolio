@@ -1,7 +1,6 @@
+import { isPlatformBrowser } from '@angular/common';
 import { Inject, Injectable, PLATFORM_ID, effect, signal } from '@angular/core';
 import { Subject } from 'rxjs';
-import { DOCUMENT, isPlatformBrowser } from '@angular/common';
-import { toObservable } from '@angular/core/rxjs-interop';
 
 export interface AppConfig {
     inputStyle: string;
@@ -25,7 +24,9 @@ interface LayoutState {
     providedIn: 'root',
 })
 export class LayoutService {
-    _config: AppConfig = {
+    isBrowser!: boolean;
+
+    private _config: AppConfig = {
         ripple: true,
         inputStyle: 'outlined',
         menuMode: 'static',
@@ -35,6 +36,8 @@ export class LayoutService {
     };
 
     config = signal<AppConfig>(this._config);
+    loading = signal<boolean>(false);
+    themeLink = signal<string>('assets/primeng-themes/md-light-indigo/theme.css');
 
     state: LayoutState = {
         staticMenuDesktopInactive: false,
@@ -46,19 +49,11 @@ export class LayoutService {
     };
 
     private configUpdate = new Subject<AppConfig>();
-
-    private overlayOpen = new Subject<any>();
-
     configUpdate$ = this.configUpdate.asObservable();
-
+    private overlayOpen = new Subject<any>();
     overlayOpen$ = this.overlayOpen.asObservable();
 
-    isBrowser!: boolean;
-
-    private themeLink = signal<string>('assets/primeng-themes/md-light-indigo/theme.css');
-    themeLink$ = toObservable(this.themeLink);
-
-    constructor(@Inject(DOCUMENT) private document: Document, @Inject(PLATFORM_ID) private platformId: Object) {
+    constructor(@Inject(PLATFORM_ID) private platformId: Object) {
         this.isBrowser = isPlatformBrowser(this.platformId);
 
         effect(() => {

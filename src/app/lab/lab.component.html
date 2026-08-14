@@ -1,4 +1,4 @@
-<link id="theme-css" rel="stylesheet" [href]="themeUrl">
+<link id="theme-css" rel="stylesheet" [href]="themeUrl()">
 
 <div class="layout-wrapper" [ngClass]="containerClass">
   <app-topbar></app-topbar>
@@ -14,7 +14,7 @@
   <div class="layout-mask"></div>
   <p-toast [autoZIndex]="false" styleClass="toast"></p-toast>
 </div>
-<p-blockUI [blocked]="loading" [autoZIndex]="false" styleClass="blockui" />
-@if (loading) {
+<p-blockUI [blocked]="loading()" [autoZIndex]="false" styleClass="blockui" />
+@if (loading()) {
 <p-progressSpinner styleClass="spinner" ariaLabel="loading" />
 }

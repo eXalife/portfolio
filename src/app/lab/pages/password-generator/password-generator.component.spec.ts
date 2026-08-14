@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { PasswordGeneratorComponent } from './password-generator.component';
-import { LayoutService } from '../../../service/layout.service';
+import { LayoutService } from '../../service/layout.service';
 import { MessageService } from 'primeng/api';
 import { provideRouter } from '@angular/router';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';

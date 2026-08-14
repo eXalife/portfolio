@@ -1,10 +1,10 @@
 import { DOCUMENT, NgClass } from '@angular/common';
-import { Component, Inject, Renderer2, ViewChild, ViewEncapsulation } from '@angular/core';
+import { Component, computed, Inject, Renderer2, ViewChild, ViewEncapsulation } from '@angular/core';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { BlockUIModule } from 'primeng/blockui';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { ToastModule } from 'primeng/toast';
-import { LayoutService } from '../service/layout.service';
+import { LayoutService } from './service/layout.service';
 import { FooterComponent } from './footer/footer.component';
 import { SidebarComponent } from './sidebar/sidebar.component';
 import { TopbarComponent } from './topbar/topbar.component';
@@ -21,9 +21,11 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
   encapsulation: ViewEncapsulation.None
 })
 export class LabComponent {
-  loading = false;
+  loading = this.layoutService.loading;
 
-  themeUrl!: SafeResourceUrl;
+  themeUrl = computed<SafeResourceUrl>(() =>
+    this.sanitizer.bypassSecurityTrustResourceUrl(this.layoutService.themeLink())
+  );
 
   overlayMenuOpenSubscription?: Subscription;
 
@@ -36,10 +38,6 @@ export class LabComponent {
   @ViewChild(TopbarComponent) appTopbar!: TopbarComponent;
 
   constructor(@Inject(DOCUMENT) private document: Document, private layoutService: LayoutService, private renderer: Renderer2, private router: Router, private primengConfig: PrimeNGConfig, private sanitizer: DomSanitizer) {
-    this.layoutService.themeLink$.subscribe(themeLink => {
-      this.themeUrl = this.sanitizer.bypassSecurityTrustResourceUrl(themeLink);
-    });
-
     this.addPreloadLink('assets/primeng-themes/md-light-indigo/theme.css');
     this.addPreloadLink('assets/primeng-themes/md-dark-indigo/theme.css');
 
@@ -87,9 +85,9 @@ export class LabComponent {
 
     if (!existingLink) {
       const link = this.document.createElement('link');
-      link.rel = 'preload';
-      link.as = 'style';
-      link.href = href;
+      link.setAttribute('as', 'style');
+      link.setAttribute('href', href);
+      link.setAttribute('rel', 'preload');
 
       this.document.head.appendChild(link);
     }

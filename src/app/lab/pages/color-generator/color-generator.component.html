@@ -49,14 +49,14 @@
             <p-button (onClick)="pickOp.toggle($event)" label="Pick" icon="pi pi-palette" severity="success" />
             <p-overlayPanel #pickOp
                 [style]="{ 'width': 'calc(' + pickContainer.offsetWidth + 'px - 1rem)', 'min-width': '256px' }">
-                <div class="grid">
+                <div class="grid grid-nogutter">
                     <div class="field col-12 p-0 flex justify-content-center">
                         <p-colorPicker [(ngModel)]="colorPickerColor" [inline]="true"
                             (ngModelChange)="setColor(colorPickerColor)" />
                     </div>
                     <div class="field col-12 p-0">
                         <p-selectButton [options]="colorPickerOptions" [(ngModel)]="colorPickerType" optionLabel="label"
-                            optionValue="value" unselectable="true" styleClass="w-full full-width-select-button">
+                            optionValue="value" unselectable="true" styleClass="full-width-select-button">
                         </p-selectButton>
                     </div>
                     @switch (colorPickerType) {

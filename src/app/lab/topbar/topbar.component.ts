@@ -5,7 +5,7 @@ import { MenuItem } from 'primeng/api';
 import { InputSwitchModule } from 'primeng/inputswitch';
 import { MenuModule } from 'primeng/menu';
 import { distinctUntilChanged } from 'rxjs';
-import { LayoutService } from '../../service/layout.service';
+import { LayoutService } from '../service/layout.service';
 
 @Component({
   selector: 'app-topbar',
