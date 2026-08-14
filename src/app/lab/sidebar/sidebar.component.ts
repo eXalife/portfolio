@@ -4,7 +4,7 @@ import { Component, ElementRef, OnDestroy, OnInit } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { MenuItem } from 'primeng/api';
 import { filter, Subscription } from 'rxjs';
-import { LayoutService } from '../../service/layout.service';
+import { LayoutService } from '../service/layout.service';
 
 @Component({
   selector: 'app-sidebar',
@@ -30,13 +30,16 @@ export class SidebarComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.model = [{
       label: 'Pages',
-      items: [{
-        label: 'Generators', icon: 'pi-fw pi pi-chevron-right', items: [
-          { label: 'Password Generator', icon: 'pi-fw pi pi-key', routerLink: ['password-generator'] },
-          { label: 'Color Generator', icon: 'pi-fw pi pi-palette', routerLink: ['color-generator'] },
-          { label: 'Number Generator', icon: 'pi-fw pi pi-asterisk', routerLink: ['number-generator'] }
-        ]
-      }]
+      items: [
+        { label: 'Weather Forecast', icon: 'pi pi-fw pi-cloud', routerLink: ['weather-forecast'] },
+        {
+          label: 'Generators', icon: 'pi-fw pi pi-chevron-right', items: [
+            { label: 'Password Generator', icon: 'pi-fw pi pi-key', routerLink: ['password-generator'] },
+            { label: 'Color Generator', icon: 'pi-fw pi pi-palette', routerLink: ['color-generator'] },
+            { label: 'Number Generator', icon: 'pi-fw pi pi-asterisk', routerLink: ['number-generator'] }
+          ]
+        }
+      ]
     }];
 
     this.checkActiveRoute(this.model);

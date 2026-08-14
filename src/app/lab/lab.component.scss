@@ -3,6 +3,8 @@
 @import "primeflex/primeflex.scss";
 @import "primeicons/primeicons.css";
 
+// primeng fixes
+
 .blockui {
     z-index: 9997;
 }
@@ -33,7 +35,6 @@
     }
 }
 
-
 .full-width-select-button {
     display: flex;
     width: 100%;
@@ -41,5 +42,11 @@
     .p-button {
         flex: 1;
         justify-content: center;
+    }
+}
+
+.full-width-autocomplete-panel {
+    .p-overlay.p-component {
+        width: 100%;
     }
 }

@@ -1,0 +1,145 @@
+<div class="col-12 xl:col-8 xl:col-offset-2">
+    <div class="card flex flex-column row-gap-3">
+
+        <div class="field col-12 p-0 flex justify-content-between align-items-center flex-wrap gap-2">
+            <h5 class="m-0">Weather Forecast</h5>
+            <p-selectButton [options]="tempUnitOptions" [ngModel]="tempUnit()" (ngModelChange)="onUnitChange($event)"
+                optionLabel="label" optionValue="value" [allowEmpty]="false" styleClass="p-buttonset-sm">
+            </p-selectButton>
+        </div>
+
+        <div class="p-fluid field col-12 p-0">
+            <label for="citySearch" class="font-semibold block mb-2">Search Location</label>
+            <p-autoComplete id="citySearch" [ngModel]="selectedCity()" (ngModelChange)="selectedCity.set($event)"
+                [suggestions]="suggestions()" (completeMethod)="search($event)" (onSelect)="onCitySelect($event)"
+                (onClear)="onClear()" optionLabel="displayName" [dropdown]="true" [showClear]="true"
+                placeholder="Type a city name..." [minLength]="2" styleClass="full-width-autocomplete-panel">
+                <ng-template let-item pTemplate="item">
+                    <div class="flex align-items-center gap-2">
+                        <i class="pi pi-map-marker text-primary"></i>
+                        <span>{{ item.displayName }}</span>
+                    </div>
+                </ng-template>
+            </p-autoComplete>
+        </div>
+
+        @if (weather() && activeCity() && !loading()) {
+        <div class="field col-12 p-0">
+            <div class="location-header">
+                <div>
+                    <h5 class="m-0">{{ activeCity()?.name }}</h5>
+                    <span class="text-500 text-sm">
+                        {{ activeCity()?.admin1 ? activeCity()?.admin1 + ', ' : '' }}{{ activeCity()?.country }}
+                    </span>
+                </div>
+
+                <p-tag severity="info">
+                    <div class="inline-flex align-items-center gap-1">
+                        <i class="text-base font-bold pi" [class]="condition().icon"></i>
+                        <span class="text-base">{{ condition().label }}</span>
+                    </div>
+                </p-tag>
+            </div>
+
+            <div class="temp-hero font-bold my-3">
+                <span class="temp-value">{{ currentTemp() }}</span>
+                <span class="temp-unit">°{{ tempUnit() }}</span>
+            </div>
+        </div>
+
+        <div class="field col-12 metrics-grid">
+            <div class="metric-item">
+                <i class="pi pi-user text-color-secondary"></i>
+                <div>
+                    <div class="metric-label">Feels Like</div>
+                    <div class="metric-value">
+                        {{ currentApparentTemp() }}°{{ tempUnit() }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="metric-item">
+                <i class="pi pi-percentage text-color-secondary"></i>
+                <div>
+                    <div class="metric-label">Humidity</div>
+                    <div class="metric-value">
+                        {{ weather()?.current?.relative_humidity_2m }}
+                        {{ weather()?.current_units?.relative_humidity_2m }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="metric-item">
+                <i class="pi pi-compass text-color-secondary"></i>
+                <div>
+                    <div class="metric-label">Wind Speed</div>
+                    <div class="metric-value">
+                        {{ weather()?.current?.wind_speed_10m }} {{ weather()?.current_units?.wind_speed_10m }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="metric-item">
+                <i class="pi pi-cloud-download text-color-secondary"></i>
+                <div>
+                    <div class="metric-label">Precipitation</div>
+                    <div class="metric-value">
+                        {{ weather()?.current?.precipitation }} {{ weather()?.current_units?.precipitation }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="field col-12 p-0 mb-4">
+            <div class="flex justify-content-between align-items-end flex-wrap gap-2 mb-3">
+                <h6 class="mb-0"><span class="pi pi-clock mr-2"></span>24-Hour Forecast</h6>
+                <p-selectButton [options]="timeFormatOptions" [(ngModel)]="timeFormat" optionLabel="label"
+                    optionValue="value" [allowEmpty]="false" styleClass="p-buttonset-sm">
+                </p-selectButton>
+            </div>
+
+            <div class="hourly-scroll-container">
+                @for (hour of hourlyForecast(); track hour.time) {
+                <div class="hourly-card">
+                    <span class="hour-time">
+                        {{ hour.time | date: (timeFormat() === '24h' ? 'HH:mm' : 'ha') }}
+                    </span>
+                    <i class="pi {{ hour.condition.icon }} hour-icon"></i>
+                    <span class="hour-temp">{{ hour.temperature }}°</span>
+                </div>
+                }
+            </div>
+        </div>
+
+        <div class="field col-12 p-0 mb-4">
+            <h6 class="mb-3"><span class="pi pi-calendar mr-2"></span>7-Day Forecast</h6>
+            <div class="daily-list">
+                @for (day of dailyForecast(); track day.date) {
+                <div class="daily-row">
+                    <div class="daily-date font-semibold">
+                        {{ day.date | date: 'EEE, MMM d' }}
+                    </div>
+
+                    <div class="daily-condition flex align-items-center gap-2">
+                        <i class="pi {{ day.condition.icon }} text-primary"></i>
+                        <span class="text-sm text-500">{{ day.condition.label }}</span>
+                    </div>
+
+                    <div class="daily-temp flex align-items-center gap-1">
+                        <span class="font-bold">{{ day.maxTemp }}°</span>
+                        <span>{{ day.minTemp }}°</span>
+                    </div>
+                </div>
+                }
+            </div>
+        </div>
+        }
+
+        @if (!activeCity() && !loading()) {
+        <div class="field col-12 p-0 empty-state">
+            <i class="pi pi-search text-3xl mb-2 text-400"></i>
+            <p class="text-500 m-0">Search and select a city above to view live weather data.</p>
+        </div>
+        }
+    </div>
+</div>
