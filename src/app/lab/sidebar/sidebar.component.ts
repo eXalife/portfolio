@@ -33,7 +33,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
       items: [
         { label: 'Weather Forecast', icon: 'pi pi-fw pi-cloud', routerLink: ['weather-forecast'] },
         {
-          label: 'Generators', icon: 'pi-fw pi pi-chevron-right', items: [
+          label: 'Generators', icon: 'pi-fw pi pi-chevron-right', expanded: true, items: [
             { label: 'Password Generator', icon: 'pi-fw pi pi-key', routerLink: ['password-generator'] },
             { label: 'Color Generator', icon: 'pi-fw pi pi-palette', routerLink: ['color-generator'] },
             { label: 'Number Generator', icon: 'pi-fw pi pi-asterisk', routerLink: ['number-generator'] }
