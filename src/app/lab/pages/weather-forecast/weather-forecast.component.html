@@ -10,10 +10,11 @@
 
         <div class="p-fluid field col-12 p-0">
             <label for="citySearch" class="font-semibold block mb-2">Search Location</label>
-            <p-autoComplete id="citySearch" [ngModel]="selectedCity()" (ngModelChange)="selectedCity.set($event)"
-                [suggestions]="suggestions()" (completeMethod)="search($event)" (onSelect)="onCitySelect($event)"
-                (onClear)="onClear()" optionLabel="displayName" [dropdown]="true" [showClear]="true"
-                placeholder="Type a city name..." [minLength]="2" styleClass="full-width-autocomplete-panel">
+            <p-autoComplete id="citySearch" [ngModel]="selectedLocation()"
+                (ngModelChange)="selectedLocation.set($event)" [suggestions]="suggestions()"
+                (completeMethod)="search($event)" (onSelect)="onLocationSelect($event)" (onClear)="onClear()"
+                optionLabel="displayName" [dropdown]="true" [showClear]="true" placeholder="Type a city name..."
+                [minLength]="2" styleClass="full-width-autocomplete-panel">
                 <ng-template let-item pTemplate="item">
                     <div class="flex align-items-center gap-2">
                         <i class="pi pi-map-marker text-primary"></i>
@@ -23,13 +24,14 @@
             </p-autoComplete>
         </div>
 
-        @if (weather() && activeCity() && !loading()) {
+        @if (weather() && activeLocation() && !loading()) {
         <div class="field col-12 p-0">
             <div class="location-header">
                 <div>
-                    <h5 class="m-0">{{ activeCity()?.name }}</h5>
+                    <h5 class="m-0">{{ activeLocation()?.name }}</h5>
                     <span class="text-500 text-sm">
-                        {{ activeCity()?.admin1 ? activeCity()?.admin1 + ', ' : '' }}{{ activeCity()?.country }}
+                        {{ activeLocation()?.admin1 ? activeLocation()?.admin1 + ', ' : '' }}{{
+                        activeLocation()?.country }}
                     </span>
                 </div>
 
@@ -93,8 +95,9 @@
         <div class="field col-12 p-0 mb-4">
             <div class="flex justify-content-between align-items-end flex-wrap gap-2 mb-3">
                 <h6 class="mb-0"><span class="pi pi-clock mr-2"></span>24-Hour Forecast</h6>
-                <p-selectButton [options]="timeFormatOptions" [(ngModel)]="timeFormat" optionLabel="label"
-                    optionValue="value" [allowEmpty]="false" styleClass="p-buttonset-sm">
+                <p-selectButton [options]="timeFormatOptions" [ngModel]="timeFormat()"
+                    (ngModelChange)="timeFormat.set($event)" optionLabel="label" optionValue="value"
+                    [allowEmpty]="false" styleClass="p-buttonset-sm">
                 </p-selectButton>
             </div>
 
@@ -116,16 +119,16 @@
             <div class="daily-list">
                 @for (day of dailyForecast(); track day.date) {
                 <div class="daily-row">
-                    <div class="daily-date font-semibold">
+                    <div class="daily-date font-bold">
                         {{ day.date | date: 'EEE, MMM d' }}
                     </div>
 
-                    <div class="daily-condition flex align-items-center gap-2">
+                    <div class="daily-condition gap-2">
                         <i class="pi {{ day.condition.icon }} text-primary"></i>
                         <span class="text-sm text-500">{{ day.condition.label }}</span>
                     </div>
 
-                    <div class="daily-temp flex align-items-center gap-1">
+                    <div class="daily-temp gap-1">
                         <span class="font-bold">{{ day.maxTemp }}°</span>
                         <span>{{ day.minTemp }}°</span>
                     </div>
@@ -135,11 +138,26 @@
         </div>
         }
 
-        @if (!activeCity() && !loading()) {
+        @if (!weather() && !loading()) {
         <div class="field col-12 p-0 empty-state">
             <i class="pi pi-search text-3xl mb-2 text-400"></i>
-            <p class="text-500 m-0">Search and select a city above to view live weather data.</p>
+            <p class="m-0">Search and select a city above to view live weather data.</p>
         </div>
         }
+
+        <div class="field col-12 p-0 m-0">
+            <div class="flex justify-content-center align-items-center flex-wrap gap-4 text-sm text-500">
+                <span class="flex align-items-center gap-1">
+                    <i class="pi pi-map-marker"></i>
+                    Location data by
+                    <a href="https://ipapi.co/" target="_blank" rel="noopener noreferrer">ipapi.co</a>
+                </span>
+                <span class="flex align-items-center gap-1">
+                    <i class="pi pi-cloud"></i>
+                    Weather data by
+                    <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo</a>
+                </span>
+            </div>
+        </div>
     </div>
 </div>

@@ -1,5 +1,5 @@
 export interface GeoLocation {
-    id: number;
+    id?: number;
     name: string;
     latitude: number;
     longitude: number;
@@ -29,7 +29,6 @@ export interface DailyForecastItem {
     weatherCode: number;
     maxTemp: number;
     minTemp: number;
-    precipitation: number;
     condition: WeatherCondition;
 }
 

@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
+import { afterNextRender, Component, computed, DestroyRef, inject, OnDestroy, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { MessageService } from 'primeng/api';
@@ -7,6 +7,8 @@ import { AutoCompleteCompleteEvent, AutoCompleteModule, AutoCompleteSelectEvent 
 import { SelectButtonModule } from 'primeng/selectbutton';
 import { TagModule } from 'primeng/tag';
 
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
+import { catchError, debounceTime, distinctUntilChanged, of, switchMap } from 'rxjs';
 import { DailyForecastItem, GeoLocation, HourlyForecastItem, WeatherCondition, WeatherData } from '../../model/weather.models';
 import { LayoutService } from '../../service/layout.service';
 import { WeatherForecastService } from '../../service/weather-forecast.service';
@@ -21,10 +23,11 @@ type TimeFormat = '12h' | '24h';
   templateUrl: './weather-forecast.component.html',
   styleUrl: './weather-forecast.component.scss'
 })
-export class WeatherForecastComponent {
+export class WeatherForecastComponent implements OnDestroy {
   private layoutService = inject(LayoutService);
   private weatherForecastService = inject(WeatherForecastService);
   private messageService = inject(MessageService);
+  private destroyRef = inject(DestroyRef);
 
   readonly loading = this.layoutService.loading;
 
@@ -38,8 +41,9 @@ export class WeatherForecastComponent {
     { label: '24H', value: '24h' }
   ];
 
-  selectedCity = signal<GeoLocation | null>(null);
-  activeCity = signal<GeoLocation | null>(null);
+  searchQuery = signal<string>('');
+  selectedLocation = signal<GeoLocation | null>(null);
+  activeLocation = signal<GeoLocation | null>(null);
   suggestions = signal<GeoLocation[]>([]);
   weather = signal<WeatherData | null>(null);
 
@@ -65,10 +69,13 @@ export class WeatherForecastComponent {
 
   hourlyForecast = computed<HourlyForecastItem[]>(() => {
     const data = this.weather();
-    if (!data?.hourly?.time) return [];
+    if (!data?.hourly?.time || !data?.current?.time) return [];
 
-    const now = new Date();
-    let startIndex = data.hourly.time.findIndex(t => new Date(t) >= now);
+    const currentHourDate = new Date(data.current.time);
+    currentHourDate.setMinutes(0, 0, 0);
+    const currentHourMs = currentHourDate.getTime();
+
+    let startIndex = data.hourly.time.findIndex(t => new Date(t).getTime() >= currentHourMs);
     if (startIndex === -1) startIndex = 0;
 
     return data.hourly.time.slice(startIndex, startIndex + 24).map((time, idx) => {
@@ -95,48 +102,80 @@ export class WeatherForecastComponent {
         weatherCode: code,
         maxTemp: Math.round(data.daily.temperature_2m_max[idx]),
         minTemp: Math.round(data.daily.temperature_2m_min[idx]),
-        precipitation: data.daily.precipitation_sum[idx] ?? 0,
         condition: this.weatherForecastService.getWeatherCondition(code)
       };
     });
   });
 
-  search(event: AutoCompleteCompleteEvent): void {
-    this.weatherForecastService.searchCities(event.query).subscribe({
-      next: (results) => this.suggestions.set(results),
-      error: () => this.suggestions.set([])
+  constructor() {
+    toObservable(this.searchQuery).pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      switchMap(query => {
+        if (!query) return of([]);
+
+        return this.weatherForecastService.searchCities(query).pipe(takeUntilDestroyed(this.destroyRef),
+          catchError(() => of([]))
+        );
+      })
+    ).subscribe(results => this.suggestions.set(results));
+
+    afterNextRender(() => this.initLocationFromIP());
+  }
+
+  private initLocationFromIP(): void {
+    this.loading.set(true);
+    this.weatherForecastService.getClientLocation().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (geoLocation) => {
+        if (geoLocation) {
+          this.selectedLocation.set(geoLocation);
+          this.activeLocation.set(geoLocation);
+          this.loadWeather();
+        } else {
+          this.loading.set(false);
+        }
+      },
+      error: () => {
+        this.loading.set(false);
+      }
     });
   }
 
-  onCitySelect(event: AutoCompleteSelectEvent): void {
-    const city = event.value as GeoLocation;
-    if (!city?.latitude || !city?.longitude) return;
+  search(event: AutoCompleteCompleteEvent): void {
+    this.searchQuery.set(event.query);
+  }
 
-    this.activeCity.set(city);
+  onLocationSelect(event: AutoCompleteSelectEvent): void {
+    const location = event.value as GeoLocation;
+    if (!location?.latitude || !location?.longitude) return;
+
+    this.activeLocation.set(location);
     this.loadWeather();
   }
 
   onUnitChange(unit: TempUnit): void {
     this.tempUnit.set(unit);
-    if (this.activeCity()) {
+    if (this.activeLocation()) {
       this.loadWeather();
     }
   }
 
   onClear(): void {
-    this.selectedCity.set(null);
-    this.activeCity.set(null);
+    this.selectedLocation.set(null);
+    this.activeLocation.set(null);
     this.weather.set(null);
     this.suggestions.set([]);
+    this.searchQuery.set('');
   }
 
   private loadWeather(): void {
-    const city = this.activeCity();
-    if (!city) return;
+    const location = this.activeLocation();
+    if (!location) return;
 
     this.loading.set(true);
-    this.weatherForecastService.getWeather(city.latitude, city.longitude, this.tempUnit()).subscribe({
+    this.weatherForecastService.getWeather(location.latitude, location.longitude, this.tempUnit()).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (data) => {
+        console.log(data, this.activeLocation());
         this.weather.set(data);
         this.loading.set(false);
       },
@@ -149,5 +188,9 @@ export class WeatherForecastComponent {
         this.loading.set(false);
       }
     });
+  }
+
+  ngOnDestroy(): void {
+    this.layoutService.loading.set(false);
   }
 }
