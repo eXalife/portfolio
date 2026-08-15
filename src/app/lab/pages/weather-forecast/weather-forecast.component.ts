@@ -175,7 +175,6 @@ export class WeatherForecastComponent implements OnDestroy {
     this.loading.set(true);
     this.weatherForecastService.getWeather(location.latitude, location.longitude, this.tempUnit()).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (data) => {
-        console.log(data, this.activeLocation());
         this.weather.set(data);
         this.loading.set(false);
       },
