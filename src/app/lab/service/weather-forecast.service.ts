@@ -20,36 +20,20 @@ export class WeatherForecastService {
     displayName: 'Vostok Station, Antarctica'
   };
 
-  getClientLocation(): Observable<GeoLocation | null> {
-    return this.http.get<any>('https://ipapi.co/json/').pipe(
-      switchMap(res => {
-        if (res.error || !res.latitude || !res.longitude) return of(null);
 
-        const fallbackLocation: GeoLocation = {
-          latitude: res.latitude,
-          longitude: res.longitude,
+  getClientLocation(): Observable<GeoLocation | null> {
+    return this.http.get<any>('https://api.cemtemucin.com/geolocation').pipe(
+      map(res => {
+        if (!res.latitude || !res.longitude) return null;
+
+        return {
+          latitude: parseFloat(res.latitude),
+          longitude: parseFloat(res.longitude),
           name: res.city,
           admin1: res.region,
-          country: res.country_name,
-          displayName: [res.city, res.region, res.country_name].filter(Boolean).join(', ')
-        };
-
-        if (!res.city) return of(fallbackLocation);
-
-        return this.searchCities(res.city).pipe(
-          map(results => {
-            if (results && results.length > 0) {
-              return results.reduce((prev, curr) => {
-                const prevDist = Math.abs(prev.latitude - res.latitude) + Math.abs(prev.longitude - res.longitude);
-                const currDist = Math.abs(curr.latitude - res.latitude) + Math.abs(curr.longitude - res.longitude);
-
-                return currDist < prevDist ? curr : prev;
-              });
-            }
-            return fallbackLocation;
-          }),
-          catchError(() => of(fallbackLocation))
-        );
+          country: res.country,
+          displayName: [res.city, res.region, res.country].filter(Boolean).join(', ')
+        } as GeoLocation;
       }),
       catchError(() => {
         this.messageService.add({
