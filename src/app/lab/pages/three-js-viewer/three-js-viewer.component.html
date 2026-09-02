@@ -1,0 +1,22 @@
+<div class="card">
+    <div #canvasContainer class="canvas-container"></div>
+
+    <div class="overlay-layer">
+        <header class="top-bar">
+            <a class="glass-control license-badge text-sm" [href]="currentModel().link" target="_blank" rel="noopener"
+                [title]="'View source: ' + currentModel().name">
+                {{ currentModel().license }}
+            </a>
+        </header>
+
+        <button type="button" class="glass-control nav-btn prev-btn" (click)="prevModel()" [disabled]="loading()"
+            aria-label="Previous Model">
+            &#10094;
+        </button>
+
+        <button type="button" class="glass-control nav-btn next-btn" (click)="nextModel()" [disabled]="loading()"
+            aria-label="Next Model">
+            &#10095;
+        </button>
+    </div>
+</div>

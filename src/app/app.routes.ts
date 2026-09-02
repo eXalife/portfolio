@@ -13,6 +13,7 @@ export const routes: Routes = [
         children: [
             { path: '', redirectTo: 'weather-forecast', pathMatch: 'full' },
             { path: 'weather-forecast', loadComponent: () => import('./lab/pages/weather-forecast/weather-forecast.component').then(m => m.WeatherForecastComponent), title: 'Cem Temuçin | Weather Forecast' },
+            { path: 'threejs-viewer', loadComponent: () => import('./lab/pages/three-js-viewer/three-js-viewer.component').then(m => m.ThreeJsViewerComponent), title: 'Cem Temuçin | Three.js Viewer' },
             { path: 'password-generator', loadComponent: () => import('./lab/pages/password-generator/password-generator.component').then(m => m.PasswordGeneratorComponent), title: 'Cem Temuçin | Password Generator' },
             { path: 'color-generator', loadComponent: () => import('./lab/pages/color-generator/color-generator.component').then(m => m.ColorGeneratorComponent), title: 'Cem Temuçin | Color Generator' },
             { path: 'number-generator', loadComponent: () => import('./lab/pages/number-generator/number-generator.component').then(m => m.NumberGeneratorComponent), title: 'Cem Temuçin | Number Generator' },
