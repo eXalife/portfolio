@@ -100,13 +100,16 @@ describe('ThreeJsViewerComponent', () => {
       (component as any).controls = {
         target: new THREE.Vector3(),
         update: jasmine.createSpy('update'),
-        dispose: jasmine.createSpy('dispose')
+        dispose: jasmine.createSpy('dispose'),
+        minDistance: 0,
+        maxDistance: 0,
+        autoRotate: false
       };
 
       spyOn<any>(component, 'disposeCurrentModel').and.stub();
     });
 
-    it('should set loading state to true and delegate to GLTFLoader', () => {
+    it('should set loading state to true and delegate to GLTFLoader with all callbacks', () => {
       const gltfLoaderSpy = spyOn((component as any).gltfLoader, 'load').and.stub();
 
       component.loadModel(component.modelList[0]);
@@ -116,10 +119,65 @@ describe('ThreeJsViewerComponent', () => {
       expect(gltfLoaderSpy).toHaveBeenCalledWith(
         component.modelList[0].path,
         jasmine.any(Function),
-        undefined,
+        jasmine.any(Function),
         jasmine.any(Function)
       );
     });
+
+    it('should handle GLTFLoader progress callback with lengthComputable', fakeAsync(() => {
+      let progressCallback!: (xhr: ProgressEvent) => void;
+
+      spyOn((component as any).gltfLoader, 'load').and.callFake(
+        (_url: string, _onLoad: Function, onProgress: (xhr: ProgressEvent) => void) => {
+          progressCallback = onProgress;
+        }
+      );
+
+      component.loadModel(component.modelList[0]);
+
+      const mockProgressEvent = {
+        lengthComputable: true,
+        loaded: 5 * 1024 * 1024,
+        total: 10 * 1024 * 1024
+      } as ProgressEvent;
+
+      progressCallback(mockProgressEvent);
+      tick();
+
+      expect(component.progress()).toBe(50);
+      expect(component.progressBytes()).toEqual({
+        loaded: 5 * 1024 * 1024,
+        total: 10 * 1024 * 1024
+      });
+      expect(component.progressDetails()).toBe('5.0 MB / 10.0 MB (50%)');
+    }));
+
+    it('should handle GLTFLoader progress callback without lengthComputable', fakeAsync(() => {
+      let progressCallback!: (xhr: ProgressEvent) => void;
+
+      spyOn((component as any).gltfLoader, 'load').and.callFake(
+        (_url: string, _onLoad: Function, onProgress: (xhr: ProgressEvent) => void) => {
+          progressCallback = onProgress;
+        }
+      );
+
+      component.loadModel(component.modelList[0]);
+
+      const mockProgressEvent = {
+        lengthComputable: false,
+        loaded: 2 * 1024 * 1024,
+        total: 0
+      } as ProgressEvent;
+
+      progressCallback(mockProgressEvent);
+      tick();
+
+      expect(component.progressBytes()).toEqual({
+        loaded: 2 * 1024 * 1024,
+        total: 0
+      });
+      expect(component.progressDetails()).toBe('2.0 MB loaded');
+    }));
 
     it('should handle GLTFLoader success callback', fakeAsync(() => {
       const mockGltf = {
@@ -128,7 +186,7 @@ describe('ThreeJsViewerComponent', () => {
       };
 
       spyOn((component as any).gltfLoader, 'load').and.callFake(
-        (url: string, onLoad: Function) => {
+        (_url: string, onLoad: Function) => {
           onLoad(mockGltf);
         }
       );
@@ -141,14 +199,49 @@ describe('ThreeJsViewerComponent', () => {
       expect((component as any).disposeCurrentModel).toHaveBeenCalled();
       expect(sceneAddSpy).toHaveBeenCalledWith(mockGltf.scene);
       expect((component as any).currentSceneModel).toBe(mockGltf.scene);
+      expect(component.progress()).toBe(100);
       expect(mockLayoutService.loading()).toBeFalse();
+    }));
+
+    it('should configure camera specifically for interior models', fakeAsync(() => {
+      const mockGltf = { scene: new THREE.Group(), animations: [] };
+
+      spyOn((component as any).gltfLoader, 'load').and.callFake(
+        (_url: string, onLoad: Function) => onLoad(mockGltf)
+      );
+
+      const interiorModel = component.modelList.find((m) => m.isInterior)!;
+      component.loadModel(interiorModel);
+      tick();
+
+      const controls = (component as any).controls;
+      expect(controls.minDistance).toBe(0.1);
+      expect(mockLayoutService.loading()).toBeFalse();
+    }));
+
+    it('should ignore callback execution if activeLoadingPath no longer matches', fakeAsync(() => {
+      let successCallback!: Function;
+
+      spyOn((component as any).gltfLoader, 'load').and.callFake(
+        (_url: string, onLoad: Function) => {
+          successCallback = onLoad;
+        }
+      );
+
+      component.loadModel(component.modelList[0]);
+      (component as any).activeLoadingPath = 'different/path.glb';
+
+      successCallback({ scene: new THREE.Group(), animations: [] });
+      tick();
+
+      expect((component as any).disposeCurrentModel).not.toHaveBeenCalled();
     }));
 
     it('should handle GLTFLoader error callback', fakeAsync(() => {
       const consoleSpy = spyOn(console, 'error');
 
       spyOn((component as any).gltfLoader, 'load').and.callFake(
-        (url: string, onLoad: Function, onProgress: Function, onError: Function) => {
+        (_url: string, _onLoad: Function, _onProgress: Function, onError: Function) => {
           onError(new Error('Network Error'));
         }
       );
@@ -162,12 +255,15 @@ describe('ThreeJsViewerComponent', () => {
   });
 
   describe('Cleanup on Destroy', () => {
-    it('should cleanly dispose of Three.js resources on ngOnDestroy', () => {
+    it('should cleanly dispose of Three.js resources and clear activeLoadingPath on ngOnDestroy', () => {
       const disposeSpy = spyOn<any>(component, 'disposeCurrentModel').and.stub();
       const dracoDisposeSpy = spyOn((component as any).dracoLoader, 'dispose').and.stub();
 
+      (component as any).activeLoadingPath = 'assets/lab/threejs/medieval_fantasy_book.glb';
+
       component.ngOnDestroy();
 
+      expect((component as any).activeLoadingPath).toBeNull();
       expect(disposeSpy).toHaveBeenCalled();
       expect(dracoDisposeSpy).toHaveBeenCalled();
       expect(mockLayoutService.loading()).toBeFalse();

@@ -18,5 +18,16 @@
             aria-label="Next Model">
             &#10095;
         </button>
+
+        @if (loading()) {
+        <div class="bottom-bar">
+            <div class="glass-control progress-panel">
+                <span class="progress-label">{{ progressDetails() }}</span>
+                <p-progressBar [value]="progress()"
+                    [mode]="progressBytes().total > 0 ? 'determinate' : 'indeterminate'">
+                </p-progressBar>
+            </div>
+        </div>
+        }
     </div>
 </div>

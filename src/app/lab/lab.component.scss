@@ -3,23 +3,27 @@
 @import "primeflex/primeflex.scss";
 @import "primeicons/primeicons.css";
 
-// primeng fixes
-
-.blockui {
-    z-index: 9997;
-}
-
 .toast {
     z-index: 9999;
 }
 
-.spinner {
-    z-index: 9998;
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+.layout-main {
+    position: relative;
+    min-height: calc(100vh - 12rem);
+}
 
+.layout-mask-loading {
+    position: absolute;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9990;
+    pointer-events: all;
+}
+
+.spinner {
     .p-progress-spinner-circle {
         stroke: #4c7c9b !important;
     }

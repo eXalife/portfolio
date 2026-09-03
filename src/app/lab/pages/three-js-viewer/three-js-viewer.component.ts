@@ -1,9 +1,11 @@
 import { afterNextRender, Component, computed, ElementRef, inject, NgZone, OnDestroy, signal, ViewChild } from '@angular/core';
+import { ProgressBarModule } from 'primeng/progressbar';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
+import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { LayoutService } from '../../service/layout.service';
 
 interface ModelItem {
@@ -17,7 +19,7 @@ interface ModelItem {
 @Component({
   selector: 'app-three-js-viewer',
   standalone: true,
-  imports: [],
+  imports: [ProgressBarModule],
   templateUrl: './three-js-viewer.component.html',
   styleUrl: './three-js-viewer.component.scss'
 })
@@ -33,13 +35,13 @@ export class ThreeJsViewerComponent implements OnDestroy {
       name: 'Medieval Fantasy Book',
       path: 'assets/lab/threejs/medieval_fantasy_book.glb',
       license: '"Medieval Fantasy Book" by Pixel (CC BY 4.0)',
-      link: 'https://skfb.ly/69Qty'
+      link: 'https://sketchfab.com/3d-models/medieval-fantasy-book-06d5a80a04fc4c5ab552759e9a97d91a'
     },
     {
       name: 'The Great Drawing Room',
-      path: 'assets/lab/threejs/the_great_drawing_room.glb',
+      path: 'assets/lab/threejs/the_great_drawing_room_opt.glb',
       license: '"The Great Drawing Room" by Hallwylska museet (CC BY 4.0)',
-      link: 'https://skfb.ly/6ypJL',
+      link: 'https://sketchfab.com/3d-models/the-great-drawing-room-feb9ad17e042418c8e759b81e3b2e5d7',
       isInterior: true
     },
     {
@@ -53,10 +55,25 @@ export class ThreeJsViewerComponent implements OnDestroy {
   readonly currentIndex = signal<number>(0);
   readonly currentModel = computed(() => this.modelList[this.currentIndex()]);
 
-  private renderer!: THREE.WebGLRenderer;
+  readonly progress = signal<number>(0);
+  readonly progressBytes = signal<{ loaded: number; total: number }>({ loaded: 0, total: 0 });
+  readonly progressDetails = computed(() => {
+    const { loaded, total } = this.progressBytes();
+    if (total > 0) {
+      const loadedMb = (loaded / (1024 * 1024)).toFixed(1);
+      const totalMb = (total / (1024 * 1024)).toFixed(1);
+      return `${loadedMb} MB / ${totalMb} MB (${this.progress()}%)`;
+    }
+    if (loaded > 0) {
+      return `${(loaded / (1024 * 1024)).toFixed(1)} MB loaded`;
+    }
+    return 'Initializing...';
+  });
+
+  private renderer?: THREE.WebGLRenderer;
   private scene!: THREE.Scene;
   private camera!: THREE.PerspectiveCamera;
-  private controls!: OrbitControls;
+  private controls?: OrbitControls;
   private mixer?: THREE.AnimationMixer;
   private currentSceneModel?: THREE.Group;
   private resizeObserver?: ResizeObserver;
@@ -65,7 +82,7 @@ export class ThreeJsViewerComponent implements OnDestroy {
   private activeLoadingPath: string | null = null;
 
   private dracoLoader = new DRACOLoader().setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.7/');
-  private gltfLoader = new GLTFLoader().setDRACOLoader(this.dracoLoader);
+  private gltfLoader = new GLTFLoader().setDRACOLoader(this.dracoLoader).setMeshoptDecoder(MeshoptDecoder);
 
   constructor() {
     afterNextRender(() => {
@@ -122,12 +139,12 @@ export class ThreeJsViewerComponent implements OnDestroy {
       if (w === 0 || h === 0) return;
       this.camera.aspect = w / h;
       this.camera.updateProjectionMatrix();
-      this.renderer.setSize(w, h);
+      this.renderer?.setSize(w, h);
     });
     this.resizeObserver.observe(container);
 
     this.ngZone.runOutsideAngular(() => {
-      this.controls.addEventListener('start', () => {
+      this.controls?.addEventListener('start', () => {
         if (this.controls) this.controls.autoRotate = false;
       });
 
@@ -137,8 +154,10 @@ export class ThreeJsViewerComponent implements OnDestroy {
         if (this.mixer) {
           this.mixer.update(this.clock.getDelta());
         }
-        this.controls.update();
-        this.renderer.render(this.scene, this.camera);
+        this.controls?.update();
+        if (this.renderer && this.scene && this.camera) {
+          this.renderer.render(this.scene, this.camera);
+        }
       };
 
       animate();
@@ -148,6 +167,8 @@ export class ThreeJsViewerComponent implements OnDestroy {
   loadModel(modelItem: ModelItem): void {
     this.loading.set(true);
     this.activeLoadingPath = modelItem.path;
+    this.progress.set(0);
+    this.progressBytes.set({ loaded: 0, total: 0 });
 
     this.gltfLoader.load(
       modelItem.path,
@@ -167,16 +188,20 @@ export class ThreeJsViewerComponent implements OnDestroy {
           const maxDim = Math.max(size.x, size.y, size.z) || 1;
           const minDim = Math.min(size.x, size.y, size.z) || 0.1;
 
-          this.controls.target.copy(center);
+          if (this.controls) {
+            this.controls.target.copy(center);
+          }
 
           if (modelItem.isInterior) {
-            this.controls.minDistance = 0.1;
-            this.controls.maxDistance = Math.min(size.x, size.z) * 0.15;
+            if (this.controls) {
+              this.controls.minDistance = 0.1;
+              this.controls.maxDistance = Math.min(size.x, size.z) * 0.15;
+            }
 
             this.camera.position.set(
               center.x,
               center.y,
-              center.z + this.controls.maxDistance * 0.75
+              center.z + (this.controls?.maxDistance ?? 10) * 0.75
             );
           } else {
             const vFov = (this.camera.fov * Math.PI) / 180;
@@ -187,8 +212,10 @@ export class ThreeJsViewerComponent implements OnDestroy {
             const distH = (maxDim / 2) / Math.tan(hFov / 2);
             const fitDistance = Math.max(distV, distH) * 1.25;
 
-            this.controls.minDistance = fitDistance * 0.3;
-            this.controls.maxDistance = fitDistance * 3.0;
+            if (this.controls) {
+              this.controls.minDistance = fitDistance * 0.3;
+              this.controls.maxDistance = fitDistance * 3.0;
+            }
 
             this.camera.position.set(
               center.x,
@@ -201,8 +228,10 @@ export class ThreeJsViewerComponent implements OnDestroy {
           this.camera.far = Math.max(maxDim * 10, 100);
           this.camera.updateProjectionMatrix();
 
-          this.controls.autoRotate = true;
-          this.controls.update();
+          if (this.controls) {
+            this.controls.autoRotate = true;
+            this.controls.update();
+          }
 
           if (gltf.animations && gltf.animations.length > 0) {
             this.mixer = new THREE.AnimationMixer(model);
@@ -215,12 +244,24 @@ export class ThreeJsViewerComponent implements OnDestroy {
         } finally {
           this.ngZone.run(() => {
             if (this.activeLoadingPath === modelItem.path) {
+              this.progress.set(100);
               this.loading.set(false);
             }
           });
         }
       },
-      undefined,
+      (xhr: ProgressEvent) => {
+        if (this.activeLoadingPath !== modelItem.path) return;
+        this.ngZone.run(() => {
+          if (xhr.lengthComputable && xhr.total > 0) {
+            const percent = Math.min(100, Math.round((xhr.loaded / xhr.total) * 100));
+            this.progress.set(percent);
+            this.progressBytes.set({ loaded: xhr.loaded, total: xhr.total });
+          } else {
+            this.progressBytes.set({ loaded: xhr.loaded, total: 0 });
+          }
+        });
+      },
       (error) => {
         console.error('Error loading GLTF:', error);
         this.ngZone.run(() => {
@@ -235,6 +276,9 @@ export class ThreeJsViewerComponent implements OnDestroy {
   private disposeCurrentModel(): void {
     if (this.mixer) {
       this.mixer.stopAllAction();
+      if (this.currentSceneModel) {
+        this.mixer.uncacheRoot(this.currentSceneModel);
+      }
       this.mixer = undefined;
     }
 
@@ -269,6 +313,8 @@ export class ThreeJsViewerComponent implements OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.activeLoadingPath = null;
+
     if (this.animationFrameId !== null) {
       cancelAnimationFrame(this.animationFrameId);
     }
@@ -282,7 +328,7 @@ export class ThreeJsViewerComponent implements OnDestroy {
     this.dracoLoader.dispose();
     this.controls?.dispose();
     this.renderer?.dispose();
-    this.renderer?.domElement.remove();
+    this.renderer?.domElement?.remove();
 
     if (this.scene?.environment) {
       this.scene.environment.dispose();

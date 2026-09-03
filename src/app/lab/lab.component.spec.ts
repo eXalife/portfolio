@@ -1,5 +1,6 @@
 import { ElementRef, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { provideRouter } from '@angular/router';
 import { MessageService, PrimeNGConfig } from 'primeng/api';
@@ -246,6 +247,31 @@ describe('LabComponent', () => {
       expect(classes['layout-mobile-active']).toBeTrue();
       expect(classes['p-input-filled']).toBeTrue();
       expect(classes['p-ripple-disabled']).toBeTrue();
+    });
+  });
+
+  describe('Loading Mask UI', () => {
+    it('should not display the loading overlay when loading is false', () => {
+      layoutService.loading.set(false);
+      fixture.detectChanges();
+
+      const maskEl = fixture.debugElement.query(By.css('.layout-mask-loading'));
+      const spinnerEl = fixture.debugElement.query(By.css('p-progressspinner'));
+
+      expect(maskEl).toBeNull();
+      expect(spinnerEl).toBeNull();
+    });
+
+    it('should display the loading overlay and centered spinner inside .layout-main when loading is true', () => {
+      layoutService.loading.set(true);
+      fixture.detectChanges();
+
+      const layoutMainEl = fixture.debugElement.query(By.css('.layout-main'));
+      const maskEl = layoutMainEl.query(By.css('.layout-mask-loading'));
+      const spinnerEl = maskEl.query(By.css('p-progressspinner'));
+
+      expect(maskEl).toBeTruthy();
+      expect(spinnerEl).toBeTruthy();
     });
   });
 });

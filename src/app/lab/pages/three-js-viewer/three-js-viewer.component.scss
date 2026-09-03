@@ -77,6 +77,35 @@
             }
         }
 
+        .bottom-bar {
+            position: absolute;
+            bottom: 1rem;
+            inset-inline: 0;
+            display: flex;
+            justify-content: center;
+            padding: 0 1rem;
+            pointer-events: none;
+
+            .progress-panel {
+                display: flex;
+                flex-direction: column;
+                gap: 0.5rem;
+                width: 100%;
+                max-width: 24rem;
+                padding: 0.75rem 1rem;
+                border-radius: 0.75rem;
+
+                .progress-label {
+                    width: 100%;
+                    font-size: 0.875rem;
+                }
+
+                p-progressBar {
+                    width: 100%;
+                }
+            }
+        }
+
         .nav-btn {
             position: absolute;
             cursor: pointer;
