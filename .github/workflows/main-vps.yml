@@ -1,0 +1,73 @@
+name: Deploy Angular App to VPS
+
+on:
+  push:
+    branches:
+      - master
+
+concurrency:
+  group: "vps-deploy"
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Angular Project for VPS
+        run: npx ng build --base-href "/"
+
+      - name: Transfer build to VPS staging area
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          source: "dist/portfolio/browser/**"
+          target: "/home/deployer/app-staging"
+          strip_components: 3
+          overwrite: true
+          rm: true
+
+      - name: Deploy staged build on VPS
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          script: |
+            set -e
+
+            # 1. Prepare backup directory
+            mkdir -p /home/deployer/angular-backup
+            rm -rf /home/deployer/angular-backup/*
+
+            # 2. Backup current production files if they exist
+            if [ -n "$(ls -A /var/www/mywebsite 2>/dev/null)" ]; then
+              cp -r /var/www/mywebsite/* /home/deployer/angular-backup/
+            fi
+
+            # 3. Fast atomic-style replacement
+            rm -rf /var/www/mywebsite/*
+            cp -r /home/deployer/app-staging/* /var/www/mywebsite/
+            rm -rf /home/deployer/app-staging
+
+            # 4. Enforce proper group permissions for Nginx
+            chmod -R g+rX /var/www/mywebsite
+
+            # 5. Fix SELinux context
+            /usr/sbin/restorecon -R /var/www/mywebsite
