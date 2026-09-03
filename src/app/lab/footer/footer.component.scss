@@ -1,13 +1,12 @@
 .layout-footer {
     .footer-link {
-        margin-left: auto;
-        justify-self: flex-end;
         text-decoration: none;
         color: var(--text-color);
 
         >img {
-            width: 28px;
-            height: 28px;
+            display: block;
+            width: 2rem;
+            height: 2rem;
         }
     }
 }

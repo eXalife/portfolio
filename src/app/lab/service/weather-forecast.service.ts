@@ -20,7 +20,6 @@ export class WeatherForecastService {
     displayName: 'Vostok Station, Antarctica'
   };
 
-
   getClientLocation(): Observable<GeoLocation | null> {
     return this.http.get<any>('https://api.cemtemucin.com/geolocation').pipe(
       map(res => {

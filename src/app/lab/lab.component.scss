@@ -7,25 +7,25 @@
     z-index: 9999;
 }
 
-.layout-main {
+.layout-main-container {
     position: relative;
-    min-height: calc(100vh - 12rem);
 }
 
 .layout-mask-loading {
     position: absolute;
     inset: 0;
-    background-color: rgba(0, 0, 0, 0.4);
+    background-color: rgba(0, 0, 0, 0.33);
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 9990;
+    z-index: 996;
     pointer-events: all;
-}
+    margin: 7rem 2rem 5rem 4rem;
+    border-radius: 12px;
 
-.spinner {
-    .p-progress-spinner-circle {
-        stroke: #4c7c9b !important;
+    @media (max-width: 1199px) {
+        margin-left: 0.5rem;
+        margin-right: 0.5rem;
     }
 }
 

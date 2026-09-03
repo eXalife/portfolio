@@ -11,12 +11,18 @@
 
         <button type="button" class="glass-control nav-btn prev-btn" (click)="prevModel()" [disabled]="loading()"
             aria-label="Previous Model">
-            &#10094;
+            <svg width="1.5rem" height="1.5rem" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
+                stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
         </button>
 
         <button type="button" class="glass-control nav-btn next-btn" (click)="nextModel()" [disabled]="loading()"
             aria-label="Next Model">
-            &#10095;
+            <svg width="1.5rem" height="1.5rem" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
+                stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
         </button>
 
         @if (loading()) {

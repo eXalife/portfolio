@@ -8,14 +8,13 @@
   <div class="layout-main-container">
     <div class="layout-main">
       <router-outlet></router-outlet>
-
-      @if (loading()) {
-      <div class="layout-mask-loading">
-        <p-progressSpinner styleClass="spinner" ariaLabel="loading" />
-      </div>
-      }
     </div>
     <app-footer></app-footer>
+    @if (loading()) {
+    <div class="layout-mask-loading">
+      <p-progressSpinner styleClass="spinner" ariaLabel="loading" strokeWidth="5" />
+    </div>
+    }
   </div>
   <div class="layout-mask"></div>
   <p-toast [autoZIndex]="false" styleClass="toast"></p-toast>

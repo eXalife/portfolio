@@ -8,7 +8,7 @@ import { SelectButtonModule } from 'primeng/selectbutton';
 import { TagModule } from 'primeng/tag';
 
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
-import { catchError, debounceTime, distinctUntilChanged, of, switchMap } from 'rxjs';
+import { catchError, debounceTime, distinctUntilChanged, of, switchMap, finalize } from 'rxjs';
 import { DailyForecastItem, GeoLocation, HourlyForecastItem, WeatherCondition, WeatherData } from '../../model/weather.models';
 import { LayoutService } from '../../service/layout.service';
 import { WeatherForecastService } from '../../service/weather-forecast.service';
@@ -113,11 +113,9 @@ export class WeatherForecastComponent implements OnDestroy {
       distinctUntilChanged(),
       switchMap(query => {
         if (!query) return of([]);
-
-        return this.weatherForecastService.searchCities(query).pipe(takeUntilDestroyed(this.destroyRef),
-          catchError(() => of([]))
-        );
-      })
+        return this.weatherForecastService.searchCities(query).pipe(catchError(() => of([])));
+      }),
+      takeUntilDestroyed(this.destroyRef)
     ).subscribe(results => this.suggestions.set(results));
 
     afterNextRender(() => this.initLocationFromIP());
@@ -173,23 +171,23 @@ export class WeatherForecastComponent implements OnDestroy {
     if (!location) return;
 
     this.loading.set(true);
-    this.weatherForecastService.getWeather(location.latitude, location.longitude, this.tempUnit()).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (data) => {
-        this.weather.set(data);
-        this.loading.set(false);
-      },
-      error: (err) => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Failed to fetch weather data',
-          detail: err?.message || 'Error occurred'
-        });
-        this.loading.set(false);
-      }
-    });
+    this.weatherForecastService.getWeather(location.latitude, location.longitude, this.tempUnit())
+      .pipe(takeUntilDestroyed(this.destroyRef), finalize(() => this.loading.set(false)))
+      .subscribe({
+        next: (data) => {
+          this.weather.set(data);
+        },
+        error: (err) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Failed to fetch weather data',
+            detail: err?.message || 'Error occurred'
+          });
+        }
+      });
   }
 
   ngOnDestroy(): void {
-    this.layoutService.loading.set(false);
+    this.loading.set(false);
   }
 }
