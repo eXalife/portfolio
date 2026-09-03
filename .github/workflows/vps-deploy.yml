@@ -15,10 +15,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 24
           cache: 'npm'
@@ -71,3 +71,17 @@ jobs:
 
             # 5. Fix SELinux context
             /usr/sbin/restorecon -R /var/www/mywebsite
+
+      - name: Purge Cloudflare Cache
+        run: |
+          response=$(curl -s -X POST "https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}/purge_cache" \
+            -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            --data '{"purge_everything":true}')
+
+          if echo "$response" | grep -q '"success":true'; then
+            echo "Cloudflare cache purged successfully."
+          else
+            echo "Failed to purge Cloudflare cache: $response"
+            exit 1
+          fi
