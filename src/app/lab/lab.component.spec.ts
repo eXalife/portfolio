@@ -262,12 +262,12 @@ describe('LabComponent', () => {
       expect(spinnerEl).toBeNull();
     });
 
-    it('should display the loading overlay and centered spinner inside .layout-main when loading is true', () => {
+    it('should display the loading overlay and centered spinner inside .layout-main-container when loading is true', () => {
       layoutService.loading.set(true);
       fixture.detectChanges();
 
-      const layoutMainEl = fixture.debugElement.query(By.css('.layout-main'));
-      const maskEl = layoutMainEl.query(By.css('.layout-mask-loading'));
+      const layoutContainerEl = fixture.debugElement.query(By.css('.layout-main-container'));
+      const maskEl = layoutContainerEl.query(By.css('.layout-mask-loading'));
       const spinnerEl = maskEl.query(By.css('p-progressspinner'));
 
       expect(maskEl).toBeTruthy();

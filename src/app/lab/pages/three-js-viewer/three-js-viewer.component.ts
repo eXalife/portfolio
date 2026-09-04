@@ -38,6 +38,11 @@ export class ThreeJsViewerComponent implements OnDestroy {
       link: 'https://sketchfab.com/3d-models/medieval-fantasy-book-06d5a80a04fc4c5ab552759e9a97d91a'
     },
     {
+      /* 
+        original model optimized, size dropped from 68mb to 22mb
+         npx @gltf-transform/cli webp the_great_drawing_room.glb step.glb --quality 92  // compress textures with high quality
+         npx @gltf-transform/cli meshopt step.glb the_great_drawing_room_opt.glb        // compress geometry buffers losslessly with meshopt
+      */
       name: 'The Great Drawing Room',
       path: 'assets/lab/threejs/the_great_drawing_room_opt.glb',
       license: '"The Great Drawing Room" by Hallwylska museet (CC BY 4.0)',
@@ -81,7 +86,7 @@ export class ThreeJsViewerComponent implements OnDestroy {
   private clock = new THREE.Clock();
   private activeLoadingPath: string | null = null;
 
-  private dracoLoader = new DRACOLoader().setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.7/');
+  private dracoLoader = new DRACOLoader().setDecoderPath('assets/lab/draco/');
   private gltfLoader = new GLTFLoader().setDRACOLoader(this.dracoLoader).setMeshoptDecoder(MeshoptDecoder);
 
   constructor() {

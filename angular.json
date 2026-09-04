@@ -29,6 +29,7 @@
             "assets": [
               "src/favicon.png",
               "src/assets",
+              "src/robots.txt",
               {
                 "glob": "**/*",
                 "input": "node_modules/primeng/resources/themes/md-dark-indigo",
@@ -38,6 +39,14 @@
                 "glob": "**/*",
                 "input": "node_modules/primeng/resources/themes/md-light-indigo",
                 "output": "assets/primeng-themes/md-light-indigo"
+              },
+              {
+                "glob": "**/*",
+                "input": "node_modules/three/examples/jsm/libs/draco/gltf",
+                "ignore": [
+                  "draco_encoder.js"
+                ],
+                "output": "assets/lab/draco"
               }
             ],
             "styles": [
