@@ -36,6 +36,9 @@ jobs:
       - name: Build Angular Project
         run: npx ng build --base-href "/portfolio/"
 
+      - name: Run Postbuild Script (Sitemap)
+        run: node postbuild.mjs
+
       - name: Setup Pages
         uses: actions/configure-pages@v6
 

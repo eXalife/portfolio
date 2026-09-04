@@ -29,6 +29,9 @@ jobs:
       - name: Build Angular Project for VPS
         run: npx ng build --base-href "/"
 
+      - name: Run Postbuild Script
+        run: node postbuild.mjs
+
       - name: Transfer build to VPS staging area
         uses: appleboy/scp-action@v0.1.7
         with:
