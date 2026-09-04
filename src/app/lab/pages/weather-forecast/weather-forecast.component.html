@@ -13,8 +13,8 @@
             <p-autoComplete id="citySearch" [ngModel]="selectedLocation()"
                 (ngModelChange)="selectedLocation.set($event)" [suggestions]="suggestions()"
                 (completeMethod)="search($event)" (onSelect)="onLocationSelect($event)" (onClear)="onClear()"
-                optionLabel="displayName" [dropdown]="true" [showClear]="true" placeholder="Type a city name..."
-                [minLength]="2" styleClass="full-width-autocomplete-panel">
+                optionLabel="displayName" [showClear]="true" placeholder="Type a city name..." [minLength]="2"
+                styleClass="full-width-autocomplete-panel">
                 <ng-template let-item pTemplate="item">
                     <div class="flex align-items-center gap-2">
                         <i class="pi pi-map-marker text-primary"></i>
