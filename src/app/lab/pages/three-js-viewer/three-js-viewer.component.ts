@@ -130,6 +130,7 @@ export class ThreeJsViewerComponent implements OnDestroy {
     pmremGenerator.dispose();
 
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+    this.controls.enablePan = false;
     this.controls.enableDamping = true;
     this.controls.autoRotate = true;
     this.controls.autoRotateSpeed = 0.33;

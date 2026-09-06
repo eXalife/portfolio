@@ -10,7 +10,7 @@ import { InputSwitchModule } from 'primeng/inputswitch';
 import { InputTextModule } from 'primeng/inputtext';
 import { InputTextareaModule } from 'primeng/inputtextarea';
 import { SliderModule } from 'primeng/slider';
-import { debounceTime, distinctUntilChanged } from 'rxjs';
+import { debounceTime, distinctUntilChanged, skip } from 'rxjs';
 import { LayoutService } from '../../service/layout.service';
 
 @Component({
@@ -49,7 +49,7 @@ export class PasswordGeneratorComponent implements OnInit {
 
   constructor(private layoutService: LayoutService, private messageService: MessageService) {
     // observe for preventing too many calls to generatePassword when the slider is being dragged
-    toObservable(this.passwordLength).pipe(debounceTime(200), distinctUntilChanged(), takeUntilDestroyed()).subscribe((value: number) => {
+    toObservable(this.passwordLength).pipe(skip(1), debounceTime(200), distinctUntilChanged(), takeUntilDestroyed()).subscribe((value: number) => {
       this.passwordLength.set(value);
       this.generatePassword();
     });
