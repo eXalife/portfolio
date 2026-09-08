@@ -23,10 +23,7 @@ export class TopbarComponent implements OnInit {
       items: [
         {
           separator: true
-        },
-        // {
-        //   label: 'Sign Out', icon: 'pi pi-fw pi-sign-out', command: () => this.signOut()
-        // },
+        }
       ]
     }
   ];
