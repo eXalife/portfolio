@@ -29,9 +29,14 @@
         <div class="bottom-bar">
             <div class="glass-control progress-panel">
                 <span class="progress-label">{{ progressDetails() }}</span>
-                <p-progressBar [value]="progress()"
-                    [mode]="progressBytes().total > 0 ? 'determinate' : 'indeterminate'">
+
+                @if (progressBytes().total > 0) {
+                <p-progressBar [value]="progress()" mode="determinate" [showValue]="false">
                 </p-progressBar>
+                } @else {
+                <p-progressBar mode="indeterminate" [showValue]="false">
+                </p-progressBar>
+                }
             </div>
         </div>
         }

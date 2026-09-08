@@ -171,112 +171,121 @@ export class ThreeJsViewerComponent implements OnDestroy {
   }
 
   loadModel(modelItem: ModelItem): void {
-    this.loading.set(true);
+    if (this.activeLoadingPath === modelItem.path && this.loading()) {
+      return;
+    }
+
     this.activeLoadingPath = modelItem.path;
-    this.progress.set(0);
-    this.progressBytes.set({ loaded: 0, total: 0 });
 
-    this.gltfLoader.load(
-      modelItem.path,
-      (gltf) => {
-        if (this.activeLoadingPath !== modelItem.path) return;
+    this.ngZone.run(() => {
+      this.loading.set(true);
+      this.progress.set(0);
+      this.progressBytes.set({ loaded: 0, total: 0 });
+    });
 
-        try {
-          this.disposeCurrentModel();
+    this.ngZone.runOutsideAngular(() => {
+      this.gltfLoader.load(
+        modelItem.path,
+        (gltf) => {
+          if (this.activeLoadingPath !== modelItem.path) return;
 
-          const model = gltf.scene;
-          this.currentSceneModel = model;
-          this.scene.add(model);
+          try {
+            this.disposeCurrentModel();
 
-          const box = new THREE.Box3().setFromObject(model);
-          const center = box.getCenter(new THREE.Vector3());
-          const size = box.getSize(new THREE.Vector3());
-          const maxDim = Math.max(size.x, size.y, size.z) || 1;
-          const minDim = Math.min(size.x, size.y, size.z) || 0.1;
+            const model = gltf.scene;
+            this.currentSceneModel = model;
+            this.scene.add(model);
 
-          if (this.controls) {
-            this.controls.target.copy(center);
-          }
-
-          if (modelItem.isInterior) {
-            if (this.controls) {
-              this.controls.minDistance = 0.1;
-              this.controls.maxDistance = Math.min(size.x, size.z) * 0.15;
-            }
-
-            this.camera.position.set(
-              center.x,
-              center.y,
-              center.z + (this.controls?.maxDistance ?? 10) * 0.75
-            );
-          } else {
-            const vFov = (this.camera.fov * Math.PI) / 180;
-            const aspect = this.camera.aspect || 1;
-            const hFov = 2 * Math.atan(Math.tan(vFov / 2) * aspect);
-
-            const distV = (maxDim / 2) / Math.tan(vFov / 2);
-            const distH = (maxDim / 2) / Math.tan(hFov / 2);
-            const fitDistance = Math.max(distV, distH) * 1.25;
+            const box = new THREE.Box3().setFromObject(model);
+            const center = box.getCenter(new THREE.Vector3());
+            const size = box.getSize(new THREE.Vector3());
+            const maxDim = Math.max(size.x, size.y, size.z) || 1;
+            const minDim = Math.min(size.x, size.y, size.z) || 0.1;
 
             if (this.controls) {
-              this.controls.minDistance = fitDistance * 0.3;
-              this.controls.maxDistance = fitDistance * 3.0;
+              this.controls.target.copy(center);
             }
 
-            this.camera.position.set(
-              center.x,
-              center.y + fitDistance * 0.2,
-              center.z + fitDistance
-            );
-          }
+            if (modelItem.isInterior) {
+              if (this.controls) {
+                this.controls.minDistance = 0.1;
+                this.controls.maxDistance = Math.min(size.x, size.z) * 0.15;
+              }
 
-          this.camera.near = Math.max(minDim * 0.001, 0.01);
-          this.camera.far = Math.max(maxDim * 10, 100);
-          this.camera.updateProjectionMatrix();
+              this.camera.position.set(
+                center.x,
+                center.y,
+                center.z + (this.controls?.maxDistance ?? 10) * 0.75
+              );
+            } else {
+              const vFov = (this.camera.fov * Math.PI) / 180;
+              const aspect = this.camera.aspect || 1;
+              const hFov = 2 * Math.atan(Math.tan(vFov / 2) * aspect);
 
-          if (this.controls) {
-            this.controls.autoRotate = true;
-            this.controls.update();
-          }
+              const distV = (maxDim / 2) / Math.tan(vFov / 2);
+              const distH = (maxDim / 2) / Math.tan(hFov / 2);
+              const fitDistance = Math.max(distV, distH) * 1.25;
 
-          if (gltf.animations && gltf.animations.length > 0) {
-            this.mixer = new THREE.AnimationMixer(model);
-            gltf.animations.forEach((clip) => {
-              this.mixer!.clipAction(clip).play();
+              if (this.controls) {
+                this.controls.minDistance = fitDistance * 0.3;
+                this.controls.maxDistance = fitDistance * 3.0;
+              }
+
+              this.camera.position.set(
+                center.x,
+                center.y + fitDistance * 0.2,
+                center.z + fitDistance
+              );
+            }
+
+            this.camera.near = Math.max(minDim * 0.001, 0.01);
+            this.camera.far = Math.max(maxDim * 10, 100);
+            this.camera.updateProjectionMatrix();
+
+            if (this.controls) {
+              this.controls.autoRotate = true;
+              this.controls.update();
+            }
+
+            if (gltf.animations && gltf.animations.length > 0) {
+              this.mixer = new THREE.AnimationMixer(model);
+              gltf.animations.forEach((clip) => {
+                this.mixer!.clipAction(clip).play();
+              });
+            }
+          } catch (err) {
+            console.error('Error during model initialization:', err);
+          } finally {
+            this.ngZone.run(() => {
+              if (this.activeLoadingPath === modelItem.path) {
+                this.progress.set(100);
+                this.loading.set(false);
+              }
             });
           }
-        } catch (err) {
-          console.error('Error during model initialization:', err);
-        } finally {
+        },
+        (xhr: ProgressEvent) => {
+          if (this.activeLoadingPath !== modelItem.path) return;
+          this.ngZone.run(() => {
+            if (xhr.lengthComputable && xhr.total > 0) {
+              const percent = Math.min(100, Math.round((xhr.loaded / xhr.total) * 100));
+              this.progress.set(percent);
+              this.progressBytes.set({ loaded: xhr.loaded, total: xhr.total });
+            } else {
+              this.progressBytes.set({ loaded: xhr.loaded, total: 0 });
+            }
+          });
+        },
+        (error) => {
+          console.error('Error loading GLTF:', error);
           this.ngZone.run(() => {
             if (this.activeLoadingPath === modelItem.path) {
-              this.progress.set(100);
               this.loading.set(false);
             }
           });
         }
-      },
-      (xhr: ProgressEvent) => {
-        if (this.activeLoadingPath !== modelItem.path) return;
-        this.ngZone.run(() => {
-          if (xhr.lengthComputable && xhr.total > 0) {
-            const percent = Math.min(100, Math.round((xhr.loaded / xhr.total) * 100));
-            this.progress.set(percent);
-            this.progressBytes.set({ loaded: xhr.loaded, total: xhr.total });
-          } else {
-            this.progressBytes.set({ loaded: xhr.loaded, total: 0 });
-          }
-        });
-      },
-      (error) => {
-        console.error('Error loading GLTF:', error);
-        this.ngZone.run(() => {
-          if (this.activeLoadingPath === modelItem.path) {
-            this.loading.set(false);
-          }
-        });
-      }
-    );
+      );
+    });
   }
 
   private disposeCurrentModel(): void {
