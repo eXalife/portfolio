@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { afterNextRender, Component, computed, DestroyRef, inject, OnDestroy, signal } from '@angular/core';
+import { Component, computed, DestroyRef, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { MessageService } from 'primeng/api';
@@ -8,7 +8,7 @@ import { SelectButtonModule } from 'primeng/selectbutton';
 import { TagModule } from 'primeng/tag';
 
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
-import { catchError, debounceTime, distinctUntilChanged, of, switchMap, finalize } from 'rxjs';
+import { catchError, debounceTime, distinctUntilChanged, finalize, of, switchMap } from 'rxjs';
 import { DailyForecastItem, GeoLocation, HourlyForecastItem, WeatherCondition, WeatherData } from '../../model/weather.models';
 import { LayoutService } from '../../service/layout.service';
 import { WeatherForecastService } from '../../service/weather-forecast.service';
@@ -23,7 +23,7 @@ type TimeFormat = '12h' | '24h';
   templateUrl: './weather-forecast.component.html',
   styleUrl: './weather-forecast.component.scss'
 })
-export class WeatherForecastComponent implements OnDestroy {
+export class WeatherForecastComponent implements OnInit, OnDestroy {
   private layoutService = inject(LayoutService);
   private weatherForecastService = inject(WeatherForecastService);
   private messageService = inject(MessageService);
@@ -117,21 +117,21 @@ export class WeatherForecastComponent implements OnDestroy {
       }),
       takeUntilDestroyed(this.destroyRef)
     ).subscribe(results => this.suggestions.set(results));
+  }
 
-    afterNextRender(() => this.initLocationFromIP());
+  ngOnInit(): void {
+    if (this.layoutService.isBrowser) {
+      this.initLocationFromIP();
+    }
   }
 
   private initLocationFromIP(): void {
     this.loading.set(true);
     this.weatherForecastService.getClientLocation().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (geoLocation) => {
-        if (geoLocation) {
-          this.selectedLocation.set(geoLocation);
-          this.activeLocation.set(geoLocation);
-          this.loadWeather();
-        } else {
-          this.loading.set(false);
-        }
+        this.selectedLocation.set(geoLocation);
+        this.activeLocation.set(geoLocation);
+        this.loadWeather();
       },
       error: () => {
         this.loading.set(false);
@@ -172,7 +172,10 @@ export class WeatherForecastComponent implements OnDestroy {
 
     this.loading.set(true);
     this.weatherForecastService.getWeather(location.latitude, location.longitude, this.tempUnit())
-      .pipe(takeUntilDestroyed(this.destroyRef), finalize(() => this.loading.set(false)))
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.loading.set(false))
+      )
       .subscribe({
         next: (data) => {
           this.weather.set(data);

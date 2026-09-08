@@ -20,10 +20,12 @@ export class WeatherForecastService {
     displayName: 'Vostok Station, Antarctica'
   };
 
-  getClientLocation(): Observable<GeoLocation | null> {
+  getClientLocation(): Observable<GeoLocation> {
     return this.http.get<any>('https://api.cemtemucin.com/geolocation').pipe(
       map(res => {
-        if (!res.latitude || !res.longitude) return null;
+        if (!res?.latitude || !res?.longitude) {
+          return this.fallbackLocation;
+        }
 
         return {
           latitude: parseFloat(res.latitude),
@@ -36,7 +38,10 @@ export class WeatherForecastService {
       }),
       catchError(() => {
         this.messageService.add({
-          severity: 'info', summary: 'Location Unavailable', detail: "IP location couldn't be located. Defaulting to Vostok Station, Antarctica.", life: 10000
+          severity: 'info',
+          summary: 'Location Unavailable',
+          detail: "IP location couldn't be located. Defaulting to Vostok Station, Antarctica.",
+          life: 10000
         });
         return of(this.fallbackLocation);
       })

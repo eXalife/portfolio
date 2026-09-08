@@ -1,19 +1,19 @@
+import { signal } from '@angular/core';
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
-import { WeatherForecastComponent } from './weather-forecast.component';
-import { WeatherForecastService } from '../../service/weather-forecast.service';
-import { LayoutService } from '../../service/layout.service';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MessageService } from 'primeng/api';
 import { of, throwError } from 'rxjs';
-import { signal } from '@angular/core';
 import { GeoLocation, WeatherData } from '../../model/weather.models';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { LayoutService } from '../../service/layout.service';
+import { WeatherForecastService } from '../../service/weather-forecast.service';
+import { WeatherForecastComponent } from './weather-forecast.component';
 
 describe('WeatherForecastComponent', () => {
   let component: WeatherForecastComponent;
   let fixture: ComponentFixture<WeatherForecastComponent>;
   let weatherServiceSpy: jasmine.SpyObj<WeatherForecastService>;
   let messageServiceSpy: jasmine.SpyObj<MessageService>;
-  let layoutServiceMock: any;
+  let layoutServiceMock: { loading: ReturnType<typeof signal<boolean>>; isBrowser: boolean };
 
   const mockGeoLocation: GeoLocation = {
     latitude: 51.5074,
@@ -64,7 +64,8 @@ describe('WeatherForecastComponent', () => {
     messageServiceSpy = jasmine.createSpyObj('MessageService', ['add']);
 
     layoutServiceMock = {
-      loading: signal(false)
+      loading: signal(false),
+      isBrowser: true
     };
 
     weatherServiceSpy.getClientLocation.and.returnValue(of(mockGeoLocation));
@@ -91,8 +92,8 @@ describe('WeatherForecastComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  describe('Initialization (afterNextRender)', () => {
-    it('should initialize location from IP and load weather', () => {
+  describe('Initialization (ngOnInit)', () => {
+    it('should initialize location from IP and load weather when running in browser', () => {
       expect(weatherServiceSpy.getClientLocation).toHaveBeenCalled();
       expect(component.activeLocation()).toEqual(mockGeoLocation);
       expect(weatherServiceSpy.getWeather).toHaveBeenCalledWith(
@@ -118,9 +119,7 @@ describe('WeatherForecastComponent', () => {
       const localComponent = localFixture.componentInstance;
 
       localFixture.detectChanges();
-
       localComponent.searchQuery.set('Lon');
-
       localFixture.detectChanges();
 
       tick(300);
