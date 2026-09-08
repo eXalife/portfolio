@@ -1,5 +1,5 @@
 import { NgTemplateOutlet } from '@angular/common';
-import { afterNextRender, Component, computed, effect, signal } from '@angular/core';
+import { Component, computed, effect, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AccordionModule } from 'primeng/accordion';
 import { MessageService } from 'primeng/api';
@@ -9,6 +9,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { OverlayPanelModule } from 'primeng/overlaypanel';
 import { SelectButtonModule } from 'primeng/selectbutton';
 import { AutoContrastDirective } from '../../../directive/auto-contrast.directive';
+import { LayoutService } from '../../service/layout.service';
 
 interface Color {
   hex: string;
@@ -31,7 +32,10 @@ export enum ColorType {
   templateUrl: './color-generator.component.html',
   styleUrl: './color-generator.component.scss'
 })
-export class ColorGeneratorComponent {
+export class ColorGeneratorComponent implements OnInit {
+  private messageService = inject(MessageService);
+  private layoutService = inject(LayoutService);
+
   currentColor = signal<Color>({ hex: '', rgb: '', hsv: '', hsl: '' });
   // compute shades based on current hex value
   colorShades = computed<Color[]>(() => this.currentColor().hex ? this.generateShades(this.currentColor().hex) : []);
@@ -53,7 +57,7 @@ export class ColorGeneratorComponent {
   hexInput = '';
   isHexInputFocused = false;
 
-  constructor(private messageService: MessageService) {
+  constructor() {
     // automatically sync inputs and pickers whenever currentColor changes
     effect(() => {
       const color = this.currentColor();
@@ -73,10 +77,12 @@ export class ColorGeneratorComponent {
       const hsvMatch = color.hsv.match(/\d+/g);
       if (hsvMatch) this.hsvInput = { h: +hsvMatch[0], s: +hsvMatch[1], v: +hsvMatch[2] };
     });
+  }
 
-    afterNextRender(() => {
+  ngOnInit(): void {
+    if (this.layoutService.isBrowser) {
       this.setColor();
-    });
+    }
   }
 
   setColor(value?: string, type: ColorType = ColorType.HEX) {

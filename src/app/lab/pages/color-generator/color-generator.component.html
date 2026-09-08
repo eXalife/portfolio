@@ -1,14 +1,14 @@
 <div class="p-fluid col-12 xl:col-10 xl:col-offset-1">
     <div class="card flex flex-column row-gap-3">
         <h5>Color Generator</h5>
-        <div class="field col-12 grid p-0">
+        <div class="field col-12 p-0">
             <div class="col-12 md:col-4 md:col-offset-4">
                 <ng-container [ngTemplateOutlet]="colorCard"
                     [ngTemplateOutletContext]="{ shade: currentColor(), customClass: 'text-xl' }">
                 </ng-container>
             </div>
         </div>
-        <div class="field col-12 grid p-0">
+        <div class="field col-12 p-0">
             <div class="col-12 block sm:hidden p-0">
                 <p-accordion>
                     <p-accordionTab header="Shades">
