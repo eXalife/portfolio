@@ -1,6 +1,7 @@
-import { Component, AfterViewInit, OnDestroy, Inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
+import { AfterViewInit, Component, Inject, OnDestroy, PLATFORM_ID } from '@angular/core';
 import { RouterLink } from "@angular/router";
+import { ResourceService } from '../service/resource.service';
 
 interface Star {
   startX: number;
@@ -21,7 +22,12 @@ export class MainComponent implements AfterViewInit, OnDestroy {
   private resizeListener?: () => void;
   private animationFrameId?: number;
 
-  constructor(@Inject(PLATFORM_ID) private platformId: Object) { }
+  constructor(private resourceService: ResourceService, @Inject(PLATFORM_ID) private platformId: Object) {
+    this.resourceService.addPreload('/assets/main/fonts/montserrat-v31-latin-ext-regular.woff2', 'font', 'font/woff2');
+    this.resourceService.addPreload('/assets/main/fonts/aleo-v16-latin-ext-500.woff2', 'font', 'font/woff2');
+    this.resourceService.addPrefetch('/assets/lab/primeng-themes/md-light-indigo.css', 'style');
+    this.resourceService.addPrefetch('/assets/lab/primeng-themes/md-dark-indigo.css', 'style');
+  }
 
   ngAfterViewInit(): void {
     if (isPlatformBrowser(this.platformId)) {

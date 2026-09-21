@@ -101,21 +101,16 @@ describe('LabComponent', () => {
       const ssrPrimengConfig = new MockPrimeNGConfig();
       const renderer = jasmine.createSpyObj('Renderer2', ['listen']);
 
-      const documentMock = {
-        head: {
-          querySelector: jasmine.createSpy('querySelector').and.returnValue(null),
-          appendChild: jasmine.createSpy('appendChild')
-        },
-        createElement: jasmine.createSpy('createElement').and.returnValue({
-          setAttribute: jasmine.createSpy('setAttribute')
-        })
+      const resourceServiceMock = {
+        addPrefetch: jasmine.createSpy('addPrefetch'),
+        addPreload: jasmine.createSpy('addPreload')
       };
 
       const routerMock = { events: new Subject() };
       const sanitizerMock = { bypassSecurityTrustResourceUrl: (val: string) => val };
 
       const ssrComponent = new LabComponent(
-        documentMock as any,
+        resourceServiceMock as any,
         ssrLayoutService as any,
         renderer,
         routerMock as any,

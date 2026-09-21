@@ -1,15 +1,16 @@
-import { DOCUMENT, NgClass } from '@angular/common';
-import { Component, computed, Inject, Renderer2, ViewChild, ViewEncapsulation } from '@angular/core';
+import { NgClass } from '@angular/common';
+import { Component, computed, Renderer2, ViewChild, ViewEncapsulation } from '@angular/core';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
+import { PrimeNGConfig } from 'primeng/api';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { ToastModule } from 'primeng/toast';
-import { LayoutService } from './service/layout.service';
+import { filter, Subscription } from 'rxjs';
+import { ResourceService } from '../service/resource.service';
 import { FooterComponent } from './footer/footer.component';
+import { LayoutService } from './service/layout.service';
 import { SidebarComponent } from './sidebar/sidebar.component';
 import { TopbarComponent } from './topbar/topbar.component';
-import { PrimeNGConfig } from 'primeng/api';
-import { filter, Subscription } from 'rxjs';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-lab',
@@ -42,15 +43,18 @@ export class LabComponent {
   @ViewChild(TopbarComponent) appTopbar!: TopbarComponent;
 
   constructor(
-    @Inject(DOCUMENT) private document: Document,
+    private resourceService: ResourceService,
     private layoutService: LayoutService,
     private renderer: Renderer2,
     private router: Router,
     private primengConfig: PrimeNGConfig,
     private sanitizer: DomSanitizer
   ) {
-    this.addPreloadLink('assets/primeng-themes/md-light-indigo/theme.css');
-    this.addPreloadLink('assets/primeng-themes/md-dark-indigo/theme.css');
+    this.resourceService.addPreload('/assets/lab/primeng-themes/md-light-indigo.css', 'style');
+    this.resourceService.addPreload('/assets/lab/primeng-themes/fonts/roboto-v20-latin-ext_latin-regular.woff2', 'font', 'font/woff2');
+    this.resourceService.addPreload('/assets/lab/primeng-themes/fonts/roboto-v20-latin-ext_latin-500.woff2', 'font', 'font/woff2');
+    this.resourceService.addPreload('/assets/lab/primeng-themes/fonts/roboto-v20-latin-ext_latin-700.woff2', 'font', 'font/woff2');
+    this.resourceService.addPrefetch('/assets/lab/primeng-themes/md-dark-indigo.css', 'style');
 
     if (this.layoutService.isBrowser) {
       this.primengConfig.ripple = true;
@@ -95,18 +99,6 @@ export class LabComponent {
         this.hideMenu();
         this.hideProfileMenu();
       });
-    }
-  }
-
-  private addPreloadLink(href: string): void {
-    const existingLink = this.document.head.querySelector(`link[rel="preload"][href="${href}"]`);
-
-    if (!existingLink) {
-      const link = this.document.createElement('link');
-      link.setAttribute('as', 'style');
-      link.setAttribute('href', href);
-      link.setAttribute('rel', 'preload');
-      this.document.head.appendChild(link);
     }
   }
 

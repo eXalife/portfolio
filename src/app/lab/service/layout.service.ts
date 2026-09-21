@@ -37,7 +37,7 @@ export class LayoutService {
 
     config = signal<AppConfig>(this._config);
     loading = signal<boolean>(false);
-    themeLink = signal<string>('assets/primeng-themes/md-light-indigo/theme.css');
+    themeLink = signal<string>('/assets/lab/primeng-themes/md-light-indigo.css');
 
     state: LayoutState = {
         staticMenuDesktopInactive: false,
@@ -73,14 +73,14 @@ export class LayoutService {
                     theme: 'md-light-indigo',
                     colorScheme: 'light'
                 }));
-                this.themeLink.set('assets/primeng-themes/md-light-indigo/theme.css');
+                this.themeLink.set('/assets/lab/primeng-themes/md-light-indigo.css');
             } else if ((!themeFromStorage && prefersDark) || themeFromStorage === 'dark') {
                 this.config.update((config) => ({
                     ...config,
                     theme: 'md-dark-indigo',
                     colorScheme: 'dark'
                 }));
-                this.themeLink.set('assets/primeng-themes/md-dark-indigo/theme.css');
+                this.themeLink.set('/assets/lab/primeng-themes/md-dark-indigo.css');
             }
         }
     }
@@ -149,16 +149,11 @@ export class LayoutService {
         const config = this.config();
         const themeLink = <HTMLLinkElement>document.getElementById('theme-css');
         const themeLinkHref = themeLink.getAttribute('href')!;
+
         const newHref = themeLinkHref
-            .split('/')
-            .map((el) =>
-                el == this._config.theme
-                    ? (el = config.theme)
-                    : el == `theme-${this._config.colorScheme}`
-                        ? (el = `theme-${config.colorScheme}`)
-                        : el
-            )
-            .join('/');
+            .replace(this._config.theme, config.theme)
+            .replace(`theme-${this._config.colorScheme}`, `theme-${config.colorScheme}`);
+
         this.replaceThemeLink(newHref);
     }
 
