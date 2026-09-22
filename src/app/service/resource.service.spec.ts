@@ -31,6 +31,7 @@ describe('ResourceService', () => {
     expect(link).toBeTruthy();
     expect(link?.getAttribute('as')).toBe(as);
     expect(link?.getAttribute('type')).toBeNull();
+    expect(link?.getAttribute('media')).toBeNull();
     expect(link?.hasAttribute('crossorigin')).toBeFalse();
   });
 
@@ -43,6 +44,7 @@ describe('ResourceService', () => {
     const link = document.head.querySelector(`link[rel="prefetch"][href="${href}"]`);
     expect(link).toBeTruthy();
     expect(link?.getAttribute('as')).toBe(as);
+    expect(link?.getAttribute('media')).toBeNull();
   });
 
   it('should not add a duplicate preload link if one already exists with the same href', () => {
@@ -88,5 +90,29 @@ describe('ResourceService', () => {
     const link = document.head.querySelector(`link[rel="preload"][href="${href}"]`);
     expect(link?.hasAttribute('crossorigin')).toBeTrue();
     expect(link?.getAttribute('crossorigin')).toBe('');
+  });
+
+  it('should set the media attribute for preload if provided', () => {
+    const href = 'theme-light.css';
+    const as = 'style';
+    const type = undefined;
+    const media = '(prefers-color-scheme: light)';
+
+    service.addPreload(href, as, type, media);
+
+    const link = document.head.querySelector(`link[rel="preload"][href="${href}"]`);
+    expect(link?.getAttribute('media')).toBe(media);
+  });
+
+  it('should set the media attribute for prefetch if provided', () => {
+    const href = 'theme-dark.css';
+    const as = 'style';
+    const type = undefined;
+    const media = '(prefers-color-scheme: dark)';
+
+    service.addPrefetch(href, as, type, media);
+
+    const link = document.head.querySelector(`link[rel="prefetch"][href="${href}"]`);
+    expect(link?.getAttribute('media')).toBe(media);
   });
 });

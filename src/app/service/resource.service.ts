@@ -8,15 +8,15 @@ export class ResourceService {
 
   constructor(@Inject(DOCUMENT) private document: Document) { }
 
-  addPreload(href: string, as: string, type?: string): void {
-    this.addResourceHint('preload', href, as, type);
+  addPreload(href: string, as: string, type?: string, media?: string): void {
+    this.addResourceHint('preload', href, as, type, media);
   }
 
-  addPrefetch(href: string, as: string, type?: string): void {
-    this.addResourceHint('prefetch', href, as, type);
+  addPrefetch(href: string, as: string, type?: string, media?: string): void {
+    this.addResourceHint('prefetch', href, as, type, media);
   }
 
-  private addResourceHint(rel: 'preload' | 'prefetch', href: string, as: string, type?: string): void {
+  private addResourceHint(rel: 'preload' | 'prefetch', href: string, as: string, type?: string, media?: string): void {
     const existingLink = this.document.head.querySelector(`link[rel="${rel}"][href="${href}"]`);
 
     if (!existingLink) {
@@ -27,6 +27,10 @@ export class ResourceService {
 
       if (type) {
         link.setAttribute('type', type);
+      }
+
+      if (media) {
+        link.setAttribute('media', media);
       }
 
       if (as === 'font') {
