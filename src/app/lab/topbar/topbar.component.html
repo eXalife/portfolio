@@ -1,9 +1,10 @@
 <div class="layout-topbar">
-    <button #menubutton class="p-link layout-menu-button layout-topbar-button" (click)="layoutService.onMenuToggle()">
+    <button #menubutton class="p-link layout-menu-button layout-topbar-button" aria-label="Menu"
+        (click)="layoutService.onMenuToggle()">
         <i class="pi pi-bars"></i>
     </button>
 
-    <button #topbarmenubutton class="p-link layout-topbar-menu-button layout-topbar-button"
+    <button #topbarmenubutton class="p-link layout-topbar-menu-button layout-topbar-button" aria-label="Sidebar"
         (click)="layoutService.showProfileSidebar()">
         <i class="pi pi-ellipsis-v"></i>
     </button>
@@ -15,11 +16,11 @@
     <div #topbarmenu class="layout-topbar-menu"
         [ngClass]="{'layout-topbar-menu-mobile-active': layoutService.state.profileSidebarVisible}">
         <div class="layout-topbar-switch">
-            <i class="pi pi-sun"></i>
+            <i class="pi pi-sun" aria-hidden="true"></i>
             <p-inputSwitch [(ngModel)]="themeSwitch" falseValue="light" trueValue="dark"
-                (onChange)="triggerChangeTheme()">
+                (onChange)="triggerChangeTheme()" ariaLabel="Toggle Theme">
             </p-inputSwitch>
-            <i class="pi pi-moon"></i>
+            <i class="pi pi-moon" aria-hidden="true"></i>
         </div>
     </div>
 </div>
