@@ -10,7 +10,7 @@
 
         <div class="p-fluid field col-12 p-0">
             <label for="citySearch" class="font-semibold block mb-2">Search Location</label>
-            <p-autoComplete id="citySearch" [ngModel]="selectedLocation()"
+            <p-autoComplete inputId="citySearch" [ngModel]="selectedLocation()"
                 (ngModelChange)="selectedLocation.set($event)" [suggestions]="suggestions()"
                 (completeMethod)="search($event)" (onSelect)="onLocationSelect($event)" (onClear)="onClear()"
                 optionLabel="displayName" [showClear]="true" placeholder="Type a city name..." [minLength]="2"

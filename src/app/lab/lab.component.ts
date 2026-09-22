@@ -51,10 +51,10 @@ export class LabComponent {
     private sanitizer: DomSanitizer
   ) {
     this.resourceService.addPreload('/assets/lab/primeng-themes/md-light-indigo.css', 'style');
+    this.resourceService.addPreload('/assets/lab/primeng-themes/md-dark-indigo.css', 'style');
     this.resourceService.addPreload('/assets/lab/primeng-themes/fonts/roboto-v20-latin-ext_latin-regular.woff2', 'font', 'font/woff2');
     this.resourceService.addPreload('/assets/lab/primeng-themes/fonts/roboto-v20-latin-ext_latin-500.woff2', 'font', 'font/woff2');
     this.resourceService.addPreload('/assets/lab/primeng-themes/fonts/roboto-v20-latin-ext_latin-700.woff2', 'font', 'font/woff2');
-    this.resourceService.addPrefetch('/assets/lab/primeng-themes/md-dark-indigo.css', 'style');
 
     if (this.layoutService.isBrowser) {
       this.primengConfig.ripple = true;
