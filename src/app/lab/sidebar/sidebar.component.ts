@@ -31,13 +31,13 @@ export class SidebarComponent implements OnInit, OnDestroy {
     this.model = [{
       label: 'Pages',
       items: [
-        { label: 'Weather Forecast', icon: 'pi pi-fw pi-cloud', routerLink: ['weather-forecast'] },
-        { label: 'Three.js Viewer', icon: 'pi pi-fw pi-caret-up', routerLink: ['threejs-viewer'] },
+        { label: 'Weather Forecast', icon: 'pi-fw pi pi-code', routerLink: ['weather-forecast'] },
+        { label: 'Three.js Viewer', icon: 'pi-fw pi pi-code', routerLink: ['threejs-viewer'] },
         {
-          label: 'Generators', icon: 'pi-fw pi pi-objects-column', expanded: true, items: [
-            { label: 'Password Generator', icon: 'pi-fw pi pi-key', routerLink: ['password-generator'] },
-            { label: 'Color Generator', icon: 'pi-fw pi pi-palette', routerLink: ['color-generator'] },
-            { label: 'Number Generator', icon: 'pi-fw pi pi-hashtag', routerLink: ['number-generator'] }
+          label: 'Generators', icon: 'pi-fw pi pi-code', expanded: true, items: [
+            { label: 'Password Generator', icon: 'pi-fw pi pi-code', routerLink: ['password-generator'] },
+            { label: 'Color Generator', icon: 'pi-fw pi pi-code', routerLink: ['color-generator'] },
+            { label: 'Number Generator', icon: 'pi-fw pi pi-code', routerLink: ['number-generator'] }
           ]
         }
       ]

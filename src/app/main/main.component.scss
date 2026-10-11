@@ -40,7 +40,8 @@ $base-color: #3affd0;
     overflow: hidden;
     transform: scale(0);
     opacity: 0;
-    animation: zoomIn 1s ease forwards;
+    will-change: transform, opacity;
+    animation: zoomIn 0.67s ease forwards;
 
     div {
         opacity: 0;
@@ -50,17 +51,17 @@ $base-color: #3affd0;
         font-family: 'Aleo', serif;
         font-weight: 500;
         font-size: 4rem;
-        animation: fade 1s ease 1.25s forwards;
+        animation: fade 1s ease 0.67s forwards;
     }
 
     &__text {
         font-size: 2rem;
-        animation: fade 1s ease 1.5s forwards;
+        animation: fade 1s ease 1s forwards;
     }
 
     &__info {
         margin-top: 1rem;
-        animation: fade 1s ease 2s forwards;
+        animation: fade 1s ease 1.33s forwards;
         display: flex;
         align-self: center;
         column-gap: 2rem;
@@ -83,7 +84,7 @@ $base-color: #3affd0;
         margin-top: 1rem;
         align-self: center;
         font-size: 2rem;
-        animation: fade 1s ease 2.5s forwards;
+        animation: fade 1s ease 1.67s forwards;
 
         >a {
             cursor: pointer;
