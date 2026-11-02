@@ -1,10 +1,11 @@
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { NgClass, NgFor, NgIf, NgTemplateOutlet } from '@angular/common';
-import { Component, ElementRef, OnDestroy, OnInit } from '@angular/core';
+import { Component, computed, ElementRef, OnDestroy, OnInit } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { MenuItem } from 'primeng/api';
 import { filter, Subscription } from 'rxjs';
 import { LayoutService } from '../service/layout.service';
+import { translateObjectSignal, translateSignal } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-sidebar',
@@ -21,30 +22,36 @@ import { LayoutService } from '../service/layout.service';
   ]
 })
 export class SidebarComponent implements OnInit, OnDestroy {
-  model: MenuItem[] = [];
   activeItems = new Set<MenuItem>();
   routerSubscription!: Subscription;
+
+  private readonly t = translateObjectSignal('sidebar');
+
+  model = computed<MenuItem[]>(() => {
+    const labels = this.t();
+    return [
+      {
+        label: labels["pages"],
+        items: [
+          { label: labels["weatherForecast"], icon: 'pi-fw pi pi-cloud', routerLink: ['weather-forecast'] },
+          { label: labels["threeJsViewer"], icon: 'pi-fw pi pi-code', routerLink: ['threejs-viewer'] },
+          {
+            label: labels["generators"], icon: 'pi-fw pi pi-code', expanded: true, items: [
+              { label: labels["passwordGenerator"], icon: 'pi-fw pi pi-code', routerLink: ['password-generator'] },
+              { label: labels["colorGenerator"], icon: 'pi-fw pi pi-code', routerLink: ['color-generator'] },
+              { label: labels["numberGenerator"], icon: 'pi-fw pi pi-code', routerLink: ['number-generator'] }
+            ]
+          }
+        ]
+      }
+    ]
+  });
 
   constructor(public layoutService: LayoutService, public el: ElementRef, public router: Router) { }
 
   ngOnInit() {
-    this.model = [{
-      label: 'Pages',
-      items: [
-        { label: 'Weather Forecast', icon: 'pi-fw pi pi-code', routerLink: ['weather-forecast'] },
-        { label: 'Three.js Viewer', icon: 'pi-fw pi pi-code', routerLink: ['threejs-viewer'] },
-        {
-          label: 'Generators', icon: 'pi-fw pi pi-code', expanded: true, items: [
-            { label: 'Password Generator', icon: 'pi-fw pi pi-code', routerLink: ['password-generator'] },
-            { label: 'Color Generator', icon: 'pi-fw pi pi-code', routerLink: ['color-generator'] },
-            { label: 'Number Generator', icon: 'pi-fw pi pi-code', routerLink: ['number-generator'] }
-          ]
-        }
-      ]
-    }];
-
-    this.checkActiveRoute(this.model);
-    this.routerSubscription = this.router.events.pipe(filter(e => e instanceof NavigationEnd)).subscribe(() => this.checkActiveRoute(this.model));
+    this.checkActiveRoute(this.model());
+    this.routerSubscription = this.router.events.pipe(filter(e => e instanceof NavigationEnd)).subscribe(() => this.checkActiveRoute(this.model()));
   }
 
   private checkActiveRoute(items: MenuItem[]): boolean {

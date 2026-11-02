@@ -15,12 +15,16 @@
 
     <div #topbarmenu class="layout-topbar-menu"
         [ngClass]="{'layout-topbar-menu-mobile-active': layoutService.state.profileSidebarVisible}">
-        <div class="layout-topbar-switch">
+        <div class="layout-topbar-el">
             <i class="pi pi-sun" aria-hidden="true"></i>
             <p-inputSwitch [(ngModel)]="themeSwitch" falseValue="light" trueValue="dark"
                 (onChange)="triggerChangeTheme()" ariaLabel="Toggle Theme">
             </p-inputSwitch>
             <i class="pi pi-moon" aria-hidden="true"></i>
+        </div>
+        <div class="layout-topbar-el">
+            <p-dropdown [options]="languages" [(ngModel)]="selectedLang" optionLabel="label" optionValue="value"
+                (onChange)="changeLanguage($event.value)" ariaLabel="Select language" />
         </div>
     </div>
 </div>

@@ -1,16 +1,17 @@
 .layout-topbar {
+  .layout-topbar-logo {
+    margin-left: 1rem;
+    width: unset;
+  }
+
   .layout-topbar-menu {
     min-width: auto;
   }
 
-  .layout-topbar-logo {
-    margin-left: 1rem;
-  }
-
-  .layout-topbar-switch {
+  .layout-topbar-el {
     margin: 0 0 0 auto;
-    padding: 0;
-    display: inline-flex;
+    padding: 0 1rem;
+    display: flex;
     align-items: center;
 
     i {
@@ -33,7 +34,7 @@
       margin-left: 0;
     }
 
-    .layout-topbar-switch {
+    .layout-topbar-el {
       padding: 1rem;
     }
   }

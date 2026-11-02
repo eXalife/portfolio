@@ -1,0 +1,11 @@
+{
+    "sidebar": {
+        "pages": "Pages",
+        "weatherForecast": "Weather Forecast",
+        "threeJsViewer": "Three.js Viewer",
+        "generators": "Generators",
+        "passwordGenerator": "Password Generator",
+        "colorGenerator": "Color Generator",
+        "numberGenerator": "Number Generator"
+    }
+}

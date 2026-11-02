@@ -1,5 +1,5 @@
 <ul class="layout-menu" role="menu" (keydown)="onKeydown($event)">
-  <ng-container *ngFor="let item of model; let i = index">
+  <ng-container *ngFor="let item of model(); let i = index">
     <ng-container *ngTemplateOutlet="menuItemTemplate; context: { $implicit: item, root: true }"></ng-container>
   </ng-container>
 </ul>

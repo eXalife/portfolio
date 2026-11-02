@@ -1,0 +1,11 @@
+{
+    "sidebar": {
+        "pages": "Sayfalar",
+        "weatherForecast": "Hava Durumu Tahmini",
+        "threeJsViewer": "Three.js Görüntüleyici",
+        "generators": "Oluşturucular",
+        "passwordGenerator": "Şifre Oluşturucu",
+        "colorGenerator": "Renk Oluşturucu",
+        "numberGenerator": "Sayı Oluşturucu"
+    }
+}

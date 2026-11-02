@@ -1,7 +1,9 @@
 import { NgClass } from '@angular/common';
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { TranslocoService } from '@jsverse/transloco';
 import { MenuItem } from 'primeng/api';
+import { DropdownModule } from 'primeng/dropdown';
 import { InputSwitchModule } from 'primeng/inputswitch';
 import { MenuModule } from 'primeng/menu';
 import { distinctUntilChanged } from 'rxjs';
@@ -10,29 +12,30 @@ import { LayoutService } from '../service/layout.service';
 @Component({
   selector: 'app-topbar',
   standalone: true,
-  imports: [NgClass, InputSwitchModule, FormsModule, MenuModule],
+  imports: [NgClass, InputSwitchModule, FormsModule, MenuModule, DropdownModule],
   templateUrl: './topbar.component.html',
   styleUrl: './topbar.component.scss'
 })
 export class TopbarComponent implements OnInit {
 
+  items: MenuItem[] = [
+    { items: [{ separator: true }] }
+  ];
+
   themeSwitch!: string;
 
-  items: MenuItem[] = [
-    {
-      items: [
-        {
-          separator: true
-        }
-      ]
-    }
+  languages = [
+    { label: 'EN', value: 'en' },
+    { label: 'TR', value: 'tr' }
   ];
+
+  selectedLang = this.translocoService.getActiveLang();
 
   @ViewChild('menubutton') menuButton!: ElementRef;
   @ViewChild('topbarmenubutton') topbarMenuButton!: ElementRef;
   @ViewChild('topbarmenu') menu!: ElementRef;
 
-  constructor(public layoutService: LayoutService) {
+  constructor(public layoutService: LayoutService, private translocoService: TranslocoService) {
     if (layoutService.isBrowser) {
     }
   }
@@ -58,5 +61,9 @@ export class TopbarComponent implements OnInit {
       theme,
       colorScheme
     }));
+  }
+
+  changeLanguage(lang: string): void {
+    this.translocoService.setActiveLang(lang);
   }
 }
