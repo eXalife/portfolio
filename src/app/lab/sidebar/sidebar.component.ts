@@ -22,21 +22,27 @@ import { translateObjectSignal, translateSignal } from '@jsverse/transloco';
   ]
 })
 export class SidebarComponent implements OnInit, OnDestroy {
-  activeItems = new Set<MenuItem>();
+  activeItems = new Set<string>();
   routerSubscription!: Subscription;
 
   private readonly t = translateObjectSignal('sidebar');
 
   model = computed<MenuItem[]>(() => {
     const labels = this.t();
+
     return [
       {
+        id: 'pages',
         label: labels["pages"],
         items: [
           { label: labels["weatherForecast"], icon: 'pi-fw pi pi-cloud', routerLink: ['weather-forecast'] },
           { label: labels["threeJsViewer"], icon: 'pi-fw pi pi-code', routerLink: ['threejs-viewer'] },
           {
-            label: labels["generators"], icon: 'pi-fw pi pi-code', expanded: true, items: [
+            id: 'generators',
+            label: labels["generators"],
+            icon: 'pi-fw pi pi-code',
+            expanded: true,
+            items: [
               { label: labels["passwordGenerator"], icon: 'pi-fw pi pi-code', routerLink: ['password-generator'] },
               { label: labels["colorGenerator"], icon: 'pi-fw pi pi-code', routerLink: ['color-generator'] },
               { label: labels["numberGenerator"], icon: 'pi-fw pi pi-code', routerLink: ['number-generator'] }
@@ -44,7 +50,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
           }
         ]
       }
-    ]
+    ];
   });
 
   constructor(public layoutService: LayoutService, public el: ElementRef, public router: Router) { }
@@ -59,14 +65,14 @@ export class SidebarComponent implements OnInit, OnDestroy {
       const match = !!item.routerLink && this.router.url.includes(`/${item.routerLink[0]}`.replace('//', '/'));
       const childActive = !!item.items && this.checkActiveRoute(item.items);
 
-      if (match || childActive || item.expanded) this.activeItems.add(item);
+      if (item.id && (match || childActive || item.expanded)) this.activeItems.add(item.id);
 
       return isActive || match || childActive;
     }, false);
   }
 
   getSubmenuAnimation(item: MenuItem, isRoot: boolean): string {
-    return isRoot || this.activeItems.has(item) ? 'expanded' : 'collapsed';
+    return isRoot || (!!item.id && this.activeItems.has(item.id)) ? 'expanded' : 'collapsed';
   }
 
   itemClick(event: Event, item: MenuItem) {
@@ -76,7 +82,10 @@ export class SidebarComponent implements OnInit, OnDestroy {
     if (item.items) {
       event.preventDefault();
       event.stopPropagation();
-      this.activeItems.has(item) ? this.activeItems.delete(item) : this.activeItems.add(item);
+
+      if (!item.id) return;
+
+      this.activeItems.has(item.id) ? this.activeItems.delete(item.id) : this.activeItems.add(item.id);
     }
   }
 
