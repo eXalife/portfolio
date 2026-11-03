@@ -105,7 +105,7 @@
                 @for (hour of hourlyForecast(); track hour.time) {
                 <div class="hourly-card">
                     <span class="hour-time">
-                        {{ hour.time | date: (timeFormat() === '24h' ? 'HH:mm' : 'ha') : undefined : dateLocale() }}
+                        {{ hour.time | date: (timeFormat() === '24h' ? 'HH:mm' : 'ha') : 'UTC' : dateLocale() }}
                     </span>
                     <i class="pi {{ hour.condition.icon }} hour-icon"></i>
                     <span class="hour-temp">{{ hour.temperature }}°</span>
@@ -120,7 +120,7 @@
                 @for (day of dailyForecast(); track day.date) {
                 <div class="daily-row">
                     <div class="daily-date font-bold">
-                        {{ day.date | date: 'EEE, MMM d' : undefined : dateLocale() }}
+                        {{ day.date | date: 'EEE, MMM d' : 'UTC' : dateLocale() }}
                     </div>
 
                     <div class="daily-condition gap-2">

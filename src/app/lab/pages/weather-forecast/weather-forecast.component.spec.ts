@@ -1,8 +1,8 @@
 import { signal } from '@angular/core';
-import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MessageService } from 'primeng/api';
-import { of, throwError } from 'rxjs';
+import { of, Subject, throwError } from 'rxjs';
 import { getTranslocoModule } from '../../../transloco-testing.module';
 import { GeoLocation, WeatherData } from '../../model/weather.models';
 import { LayoutService } from '../../service/layout.service';
@@ -114,6 +114,34 @@ describe('WeatherForecastComponent', () => {
 
       expect(layoutServiceMock.loading()).toBeFalse();
     });
+
+    it('should not override a manually selected location when IP lookup is pending', () => {
+      const ipResponse = new Subject<GeoLocation>();
+      weatherServiceSpy.getClientLocation.and.returnValue(ipResponse);
+
+      const localFixture = TestBed.createComponent(WeatherForecastComponent);
+      const localComponent = localFixture.componentInstance;
+
+      localFixture.detectChanges();
+
+      const selectedLocation = {
+        ...mockGeoLocation,
+        latitude: 48.8566,
+        longitude: 2.3522,
+        name: 'Paris'
+      };
+
+      localComponent.onLocationSelect({
+        originalEvent: {} as any,
+        value: selectedLocation
+      });
+
+      ipResponse.next(mockGeoLocation);
+
+      expect(localComponent.activeLocation()).toEqual(selectedLocation);
+
+      localFixture.destroy();
+    });
   });
 
   describe('Search functionality', () => {
@@ -129,6 +157,8 @@ describe('WeatherForecastComponent', () => {
 
       expect(weatherServiceSpy.searchCities).toHaveBeenCalledWith('Lon', 'en');
       expect(localComponent.suggestions()).toEqual([mockGeoLocation]);
+
+      localFixture.destroy();
     }));
 
     it('should set selected location and load weather on autocomplete select', () => {
@@ -141,6 +171,24 @@ describe('WeatherForecastComponent', () => {
 
       expect(component.activeLocation()).toEqual(mockGeoLocation);
       expect(weatherServiceSpy.getWeather).toHaveBeenCalled();
+    });
+
+    it('should accept zero latitude and longitude', () => {
+      const locationAtZero = {
+        ...mockGeoLocation,
+        latitude: 0,
+        longitude: 0
+      };
+
+      weatherServiceSpy.getWeather.calls.reset();
+
+      component.onLocationSelect({
+        originalEvent: {} as any,
+        value: locationAtZero
+      });
+
+      expect(component.activeLocation()).toEqual(locationAtZero);
+      expect(weatherServiceSpy.getWeather).toHaveBeenCalledWith(0, 0, 'C');
     });
   });
 
@@ -157,6 +205,22 @@ describe('WeatherForecastComponent', () => {
       expect(daily[0].condition.label).toBe('Clear Sky');
     });
 
+    it('should preserve forecast location time in hourly entries', () => {
+      expect(component.hourlyForecast()[0].time).toBe('2023-10-27T12:00Z');
+    });
+
+    it('should not show past hours when current hour is outside the forecast range', () => {
+      component.weather.set({
+        ...mockWeatherData,
+        current: {
+          ...mockWeatherData.current,
+          time: '2023-10-28T12:00'
+        }
+      });
+
+      expect(component.hourlyForecast()).toEqual([]);
+    });
+
     it('should clear all data on onClear()', () => {
       component.onClear();
 
@@ -165,6 +229,24 @@ describe('WeatherForecastComponent', () => {
       expect(component.weather()).toBeNull();
       expect(component.suggestions()).toEqual([]);
       expect(component.searchQuery()).toBe('');
+    });
+
+    it('should cancel pending weather requests when location is cleared', () => {
+      const weatherResponse = new Subject<WeatherData>();
+      weatherServiceSpy.getWeather.and.returnValue(weatherResponse);
+
+      component.onLocationSelect({
+        originalEvent: {} as any,
+        value: mockGeoLocation
+      });
+
+      expect(layoutServiceMock.loading()).toBeTrue();
+
+      component.onClear();
+      weatherResponse.next(mockWeatherData);
+
+      expect(component.weather()).toBeNull();
+      expect(layoutServiceMock.loading()).toBeFalse();
     });
   });
 

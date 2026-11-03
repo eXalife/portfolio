@@ -59,7 +59,7 @@
             "fetchFailed": "Hava durumu verileri alınamadı",
             "occurred": "Bir hata oluştu",
             "locationUnavailable": "Konum Kullanılamıyor",
-            "ipLocationNotFound": "IP konumu belirlenemedi. Varsayılan konum olarak Vostok İstasyonu, Antarktika kullanılıyor."
+            "ipLocationNotFound": "IP konumu belirlenemedi. Varsayılan konum olarak Antarktika kullanılıyor."
         }
     },
     "threeJs": {

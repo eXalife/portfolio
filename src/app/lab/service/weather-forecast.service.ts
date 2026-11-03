@@ -1,9 +1,17 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { MessageService } from 'primeng/api';
 import { TranslocoService } from '@jsverse/transloco';
+import { MessageService } from 'primeng/api';
 import { Observable, catchError, map, of } from 'rxjs';
 import { GeoLocation, GeocodingResponse, WeatherData } from '../model/weather.models';
+
+type ClientLocationResponse = {
+  latitude?: number | string | null;
+  longitude?: number | string | null;
+  city?: string;
+  region?: string;
+  country?: string;
+};
 
 @Injectable({
   providedIn: 'root'
@@ -14,25 +22,31 @@ export class WeatherForecastService {
   private translocoService = inject(TranslocoService);
 
   private readonly fallbackLocation: GeoLocation = {
-    latitude: -78.558876,
-    longitude: 106.70658,
-    name: 'Vostok Station',
-    admin1: 'Antarctica',
-    country: 'Antarctica',
-    displayName: 'Vostok Station, Antarctica'
+    latitude: -78.15856,
+    longitude: 16.40626,
+    name: 'Antarctica'
   };
 
   getClientLocation(): Observable<GeoLocation> {
-    return this.http.get<any>('https://api.cemtemucin.com/geolocation').pipe(
+    return this.http.get<ClientLocationResponse>('https://api.cemtemucin.com/geolocation').pipe(
       map(res => {
-        if (!res?.latitude || !res?.longitude) {
+        if (res?.latitude == null || res.longitude == null || !String(res.latitude).trim() || !String(res.longitude).trim()) {
           return this.fallbackLocation;
         }
 
+        const latitude = Number(res.latitude);
+        const longitude = Number(res.longitude);
+
+        if (!Number.isFinite(latitude) || !Number.isFinite(longitude) || latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
+          return this.fallbackLocation;
+        }
+
+        const name = res.city || res.region || res.country || 'Unknown location';
+
         return {
-          latitude: parseFloat(res.latitude),
-          longitude: parseFloat(res.longitude),
-          name: res.city,
+          latitude,
+          longitude,
+          name,
           admin1: res.region,
           country: res.country,
           displayName: [res.city, res.region, res.country].filter(Boolean).join(', ')
@@ -53,7 +67,7 @@ export class WeatherForecastService {
   getTranslatedLocation(location: GeoLocation, language: string): Observable<GeoLocation> {
     const lang = language.split('-')[0].toLowerCase();
 
-    if (location.id) {
+    if (location.id != null) {
       const params = new HttpParams()
         .set('id', location.id.toString())
         .set('language', lang);
@@ -69,7 +83,7 @@ export class WeatherForecastService {
 
     return this.searchCities(location.name, lang).pipe(
       map(results => {
-        if (!results.length) return location;
+        if (!results.length) return { ...location, displayName: location.displayName || location.name };
 
         return results.reduce((closest, item) => {
           const distance = (item.latitude - location.latitude) ** 2 + (item.longitude - location.longitude) ** 2;
@@ -81,10 +95,11 @@ export class WeatherForecastService {
   }
 
   searchCities(query: string, language = this.translocoService.getActiveLang()): Observable<GeoLocation[]> {
-    if (!query?.trim() || query.trim().length < 2) return of([]);
+    const searchTerm = query?.trim();
+    if (!searchTerm || searchTerm.length < 2) return of([]);
 
     const params = new HttpParams()
-      .set('name', query.trim())
+      .set('name', searchTerm)
       .set('language', language.split('-')[0].toLowerCase());
 
     return this.http.get<GeocodingResponse>('https://geocoding-api.open-meteo.com/v1/search', { params }).pipe(

@@ -10,7 +10,7 @@ import { SelectButtonModule } from 'primeng/selectbutton';
 import { TagModule } from 'primeng/tag';
 
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
-import { catchError, combineLatest, debounceTime, distinctUntilChanged, finalize, of, switchMap } from 'rxjs';
+import { catchError, combineLatest, debounceTime, distinctUntilChanged, finalize, of, Subject, switchMap, takeUntil } from 'rxjs';
 import { DailyForecastItem, GeoLocation, HourlyForecastItem, WeatherCondition, WeatherData } from '../../model/weather.models';
 import { LayoutService } from '../../service/layout.service';
 import { WeatherForecastService } from '../../service/weather-forecast.service';
@@ -33,6 +33,8 @@ export class WeatherForecastComponent implements OnInit, OnDestroy {
   private translocoService = inject(TranslocoService);
   private destroyRef = inject(DestroyRef);
   private activeLang = toSignal(this.translocoService.langChanges$, { initialValue: this.translocoService.getActiveLang() });
+  private readonly weatherRequests = new Subject<{ location: GeoLocation; unit: TempUnit } | null>();
+  private readonly cancelInitialLocation$ = new Subject<void>();
 
   readonly loading = this.layoutService.loading;
   readonly dateLocale = computed(() => this.activeLang().startsWith('tr') ? 'tr-TR' : 'en-US');
@@ -48,7 +50,7 @@ export class WeatherForecastComponent implements OnInit, OnDestroy {
   ];
 
   searchQuery = signal<string>('');
-  selectedLocation = signal<GeoLocation | null>(null);
+  selectedLocation = signal<GeoLocation | string | null>(null);
   activeLocation = signal<GeoLocation | null>(null);
   suggestions = signal<GeoLocation[]>([]);
   weather = signal<WeatherData | null>(null);
@@ -57,9 +59,8 @@ export class WeatherForecastComponent implements OnInit, OnDestroy {
   timeFormat = signal<TimeFormat>('24h');
 
   condition = computed<WeatherCondition>(() => {
-    this.activeLang();
     const code = this.weather()?.current?.weather_code;
-    return code !== undefined
+    return code != null
       ? this.weatherForecastService.getWeatherCondition(code)
       : { label: '', icon: '' };
   });
@@ -75,23 +76,19 @@ export class WeatherForecastComponent implements OnInit, OnDestroy {
   });
 
   hourlyForecast = computed<HourlyForecastItem[]>(() => {
-    this.activeLang();
     const data = this.weather();
     if (!data?.hourly?.time || !data?.current?.time) return [];
 
-    const currentHourDate = new Date(data.current.time);
-    currentHourDate.setMinutes(0, 0, 0);
-    const currentHourMs = currentHourDate.getTime();
-
-    let startIndex = data.hourly.time.findIndex(t => new Date(t).getTime() >= currentHourMs);
-    if (startIndex === -1) startIndex = 0;
+    const currentHour = data.current.time.slice(0, 13);
+    const startIndex = data.hourly.time.findIndex(time => time.slice(0, 13) >= currentHour);
+    if (startIndex === -1) return [];
 
     return data.hourly.time.slice(startIndex, startIndex + 24).map((time, idx) => {
       const realIndex = startIndex + idx;
       const code = data.hourly.weather_code[realIndex];
 
       return {
-        time,
+        time: `${time.slice(0, 16)}Z`,
         temperature: Math.round(data.hourly.temperature_2m[realIndex]),
         weatherCode: code,
         condition: this.weatherForecastService.getWeatherCondition(code)
@@ -100,7 +97,6 @@ export class WeatherForecastComponent implements OnInit, OnDestroy {
   });
 
   dailyForecast = computed<DailyForecastItem[]>(() => {
-    this.activeLang();
     const data = this.weather();
     if (!data?.daily?.time) return [];
 
@@ -117,6 +113,28 @@ export class WeatherForecastComponent implements OnInit, OnDestroy {
   });
 
   constructor() {
+    this.weatherRequests.pipe(
+      switchMap(request => {
+        if (!request) return of(null);
+
+        this.loading.set(true);
+        this.weather.set(null);
+
+        return this.weatherForecastService.getWeather(request.location.latitude, request.location.longitude, request.unit).pipe(
+          catchError(err => {
+            this.messageService.add({
+              severity: 'error',
+              summary: this.translocoService.translate('weather.errors.fetchFailed'),
+              detail: err?.message || this.translocoService.translate('weather.errors.occurred')
+            });
+            return of(null);
+          }),
+          finalize(() => this.loading.set(false))
+        );
+      }),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(data => this.weather.set(data));
+
     combineLatest([toObservable(this.searchQuery), toObservable(this.activeLang)]).pipe(
       debounceTime(300),
       distinctUntilChanged(([prevQuery, prevLang], [query, lang]) => prevQuery === query && prevLang === lang),
@@ -128,7 +146,15 @@ export class WeatherForecastComponent implements OnInit, OnDestroy {
     ).subscribe(results => this.suggestions.set(results));
 
     combineLatest([toObservable(this.activeLocation), toObservable(this.activeLang)]).pipe(
-      distinctUntilChanged(([prevLocation, prevLang], [location, lang]) => prevLocation?.id === location?.id && prevLang === lang),
+      distinctUntilChanged(([prevLocation, prevLang], [location, lang]) =>
+        prevLang === lang && (
+          prevLocation === location ||
+          (!!prevLocation && !!location &&
+            (prevLocation.id != null && location.id != null
+              ? prevLocation.id === location.id
+              : prevLocation.latitude === location.latitude && prevLocation.longitude === location.longitude))
+        )
+      ),
       switchMap(([location, lang]) => {
         if (!location) return of(null);
         return this.weatherForecastService.getTranslatedLocation(location, lang).pipe(
@@ -139,7 +165,9 @@ export class WeatherForecastComponent implements OnInit, OnDestroy {
     ).subscribe(location => {
       if (location) {
         this.activeLocation.set(location);
-        this.selectedLocation.set(location);
+        if (typeof this.selectedLocation() !== 'string') {
+          this.selectedLocation.set(location);
+        }
       }
     });
   }
@@ -152,7 +180,10 @@ export class WeatherForecastComponent implements OnInit, OnDestroy {
 
   private initLocationFromIP(): void {
     this.loading.set(true);
-    this.weatherForecastService.getClientLocation().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+    this.weatherForecastService.getClientLocation().pipe(
+      takeUntil(this.cancelInitialLocation$),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
       next: (geoLocation) => {
         this.selectedLocation.set(geoLocation);
         this.activeLocation.set(geoLocation);
@@ -165,18 +196,26 @@ export class WeatherForecastComponent implements OnInit, OnDestroy {
   }
 
   search(event: AutoCompleteCompleteEvent): void {
+    if (event.query?.trim() && !this.activeLocation()) {
+      this.cancelInitialLocation$.next();
+      this.loading.set(false);
+    }
     this.searchQuery.set(event.query);
   }
 
   onLocationSelect(event: AutoCompleteSelectEvent): void {
     const location = event.value as GeoLocation;
-    if (!location?.latitude || !location?.longitude) return;
+    if (!location || !Number.isFinite(location.latitude) || !Number.isFinite(location.longitude)) return;
 
+    this.cancelInitialLocation$.next();
+    this.selectedLocation.set(location);
     this.activeLocation.set(location);
     this.loadWeather();
   }
 
   onUnitChange(unit: TempUnit): void {
+    if (this.tempUnit() === unit) return;
+
     this.tempUnit.set(unit);
     if (this.activeLocation()) {
       this.loadWeather();
@@ -184,35 +223,19 @@ export class WeatherForecastComponent implements OnInit, OnDestroy {
   }
 
   onClear(): void {
+    this.cancelInitialLocation$.next();
+    this.weatherRequests.next(null);
     this.selectedLocation.set(null);
     this.activeLocation.set(null);
     this.weather.set(null);
     this.suggestions.set([]);
     this.searchQuery.set('');
+    this.loading.set(false);
   }
 
   private loadWeather(): void {
     const location = this.activeLocation();
-    if (!location) return;
-
-    this.loading.set(true);
-    this.weatherForecastService.getWeather(location.latitude, location.longitude, this.tempUnit())
-      .pipe(
-        takeUntilDestroyed(this.destroyRef),
-        finalize(() => this.loading.set(false))
-      )
-      .subscribe({
-        next: (data) => {
-          this.weather.set(data);
-        },
-        error: (err) => {
-          this.messageService.add({
-            severity: 'error',
-            summary: this.translocoService.translate('weather.errors.fetchFailed'),
-            detail: err?.message || this.translocoService.translate('weather.errors.occurred')
-          });
-        }
-      });
+    this.weatherRequests.next(location ? { location, unit: this.tempUnit() } : null);
   }
 
   ngOnDestroy(): void {

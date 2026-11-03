@@ -59,7 +59,7 @@
             "fetchFailed": "Failed to fetch weather data",
             "occurred": "Error occurred",
             "locationUnavailable": "Location Unavailable",
-            "ipLocationNotFound": "IP location couldn't be located. Defaulting to Vostok Station, Antarctica."
+            "ipLocationNotFound": "IP location couldn't be located. Defaulting to Antarctica."
         }
     },
     "threeJs": {
