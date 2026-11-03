@@ -5,8 +5,8 @@
 </ul>
 
 <ng-template #menuItemTemplate let-item let-root="root">
-  <li *ngIf="item.visible !== false"
-    [ngClass]="{ 'layout-root-menuitem': root, 'active-menuitem': activeItems.has(item) }" role="none">
+  <li *ngIf="item.visible !== false" role="none"
+    [ngClass]="{'layout-root-menuitem': root, 'active-menuitem': !!item.id && activeItems.has(item.id)}">
 
     <div *ngIf="root" class="layout-menuitem-root-text" role="presentation">
       {{item.label}}
