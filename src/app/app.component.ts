@@ -1,6 +1,7 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { CanonicalService } from './service/canonical.service';
+import { LanguagePreferenceService } from './service/language-preference.service';
 
 @Component({
   selector: 'app-root',
@@ -9,10 +10,11 @@ import { CanonicalService } from './service/canonical.service';
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })
-export class AppComponent implements OnInit {
+export class AppComponent {
   private canonicalService = inject(CanonicalService);
 
-  ngOnInit(): void {
+  constructor() {
+    inject(LanguagePreferenceService);
     this.canonicalService.init();
   }
 }

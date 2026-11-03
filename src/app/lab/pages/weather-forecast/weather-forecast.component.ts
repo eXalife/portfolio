@@ -1,25 +1,28 @@
-import { DatePipe } from '@angular/common';
+import { DatePipe, registerLocaleData } from '@angular/common';
+import localeTr from '@angular/common/locales/tr';
 import { Component, computed, DestroyRef, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 
 import { MessageService } from 'primeng/api';
 import { AutoCompleteCompleteEvent, AutoCompleteModule, AutoCompleteSelectEvent } from 'primeng/autocomplete';
 import { SelectButtonModule } from 'primeng/selectbutton';
 import { TagModule } from 'primeng/tag';
 
-import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
-import { catchError, debounceTime, distinctUntilChanged, finalize, of, switchMap } from 'rxjs';
+import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { catchError, combineLatest, debounceTime, distinctUntilChanged, finalize, of, switchMap } from 'rxjs';
 import { DailyForecastItem, GeoLocation, HourlyForecastItem, WeatherCondition, WeatherData } from '../../model/weather.models';
 import { LayoutService } from '../../service/layout.service';
 import { WeatherForecastService } from '../../service/weather-forecast.service';
 
 type TempUnit = 'C' | 'F';
 type TimeFormat = '12h' | '24h';
+registerLocaleData(localeTr, 'tr-TR')
 
 @Component({
   selector: 'app-weather-forecast',
   standalone: true,
-  imports: [FormsModule, AutoCompleteModule, TagModule, DatePipe, SelectButtonModule],
+  imports: [FormsModule, TranslocoModule, AutoCompleteModule, TagModule, DatePipe, SelectButtonModule],
   templateUrl: './weather-forecast.component.html',
   styleUrl: './weather-forecast.component.scss'
 })
@@ -27,9 +30,12 @@ export class WeatherForecastComponent implements OnInit, OnDestroy {
   private layoutService = inject(LayoutService);
   private weatherForecastService = inject(WeatherForecastService);
   private messageService = inject(MessageService);
+  private translocoService = inject(TranslocoService);
   private destroyRef = inject(DestroyRef);
+  private activeLang = toSignal(this.translocoService.langChanges$, { initialValue: this.translocoService.getActiveLang() });
 
   readonly loading = this.layoutService.loading;
+  readonly dateLocale = computed(() => this.activeLang().startsWith('tr') ? 'tr-TR' : 'en-US');
 
   readonly tempUnitOptions = [
     { label: '°C', value: 'C' },
@@ -51,6 +57,7 @@ export class WeatherForecastComponent implements OnInit, OnDestroy {
   timeFormat = signal<TimeFormat>('24h');
 
   condition = computed<WeatherCondition>(() => {
+    this.activeLang();
     const code = this.weather()?.current?.weather_code;
     return code !== undefined
       ? this.weatherForecastService.getWeatherCondition(code)
@@ -68,6 +75,7 @@ export class WeatherForecastComponent implements OnInit, OnDestroy {
   });
 
   hourlyForecast = computed<HourlyForecastItem[]>(() => {
+    this.activeLang();
     const data = this.weather();
     if (!data?.hourly?.time || !data?.current?.time) return [];
 
@@ -92,6 +100,7 @@ export class WeatherForecastComponent implements OnInit, OnDestroy {
   });
 
   dailyForecast = computed<DailyForecastItem[]>(() => {
+    this.activeLang();
     const data = this.weather();
     if (!data?.daily?.time) return [];
 
@@ -108,15 +117,31 @@ export class WeatherForecastComponent implements OnInit, OnDestroy {
   });
 
   constructor() {
-    toObservable(this.searchQuery).pipe(
+    combineLatest([toObservable(this.searchQuery), toObservable(this.activeLang)]).pipe(
       debounceTime(300),
-      distinctUntilChanged(),
-      switchMap(query => {
+      distinctUntilChanged(([prevQuery, prevLang], [query, lang]) => prevQuery === query && prevLang === lang),
+      switchMap(([query, lang]) => {
         if (!query) return of([]);
-        return this.weatherForecastService.searchCities(query).pipe(catchError(() => of([])));
+        return this.weatherForecastService.searchCities(query, lang).pipe(catchError(() => of([])));
       }),
       takeUntilDestroyed(this.destroyRef)
     ).subscribe(results => this.suggestions.set(results));
+
+    combineLatest([toObservable(this.activeLocation), toObservable(this.activeLang)]).pipe(
+      distinctUntilChanged(([prevLocation, prevLang], [location, lang]) => prevLocation?.id === location?.id && prevLang === lang),
+      switchMap(([location, lang]) => {
+        if (!location) return of(null);
+        return this.weatherForecastService.getTranslatedLocation(location, lang).pipe(
+          catchError(() => of(location))
+        );
+      }),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(location => {
+      if (location) {
+        this.activeLocation.set(location);
+        this.selectedLocation.set(location);
+      }
+    });
   }
 
   ngOnInit(): void {
@@ -183,8 +208,8 @@ export class WeatherForecastComponent implements OnInit, OnDestroy {
         error: (err) => {
           this.messageService.add({
             severity: 'error',
-            summary: 'Failed to fetch weather data',
-            detail: err?.message || 'Error occurred'
+            summary: this.translocoService.translate('weather.errors.fetchFailed'),
+            detail: err?.message || this.translocoService.translate('weather.errors.occurred')
           });
         }
       });

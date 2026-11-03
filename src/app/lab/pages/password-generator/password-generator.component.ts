@@ -10,13 +10,25 @@ import { InputSwitchModule } from 'primeng/inputswitch';
 import { InputTextModule } from 'primeng/inputtext';
 import { InputTextareaModule } from 'primeng/inputtextarea';
 import { SliderModule } from 'primeng/slider';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { debounceTime, distinctUntilChanged, skip } from 'rxjs';
 import { LayoutService } from '../../service/layout.service';
 
 @Component({
   selector: 'app-password-generator',
   standalone: true,
-  imports: [FormsModule, InputTextModule, InputSwitchModule, FloatLabelModule, CheckboxModule, SliderModule, InputNumberModule, ButtonModule, InputTextareaModule],
+  imports: [
+    FormsModule,
+    InputTextModule,
+    InputSwitchModule,
+    FloatLabelModule,
+    CheckboxModule,
+    SliderModule,
+    InputNumberModule,
+    ButtonModule,
+    InputTextareaModule,
+    TranslocoPipe
+  ],
   templateUrl: './password-generator.component.html',
   styleUrl: './password-generator.component.scss'
 })
@@ -47,12 +59,18 @@ export class PasswordGeneratorComponent implements OnInit {
   private clickCount: number = 0;
   private clickTimeout: any;
 
-  constructor(private layoutService: LayoutService, private messageService: MessageService) {
+  constructor(
+    private layoutService: LayoutService,
+    private messageService: MessageService,
+    private translocoService: TranslocoService
+  ) {
     // observe for preventing too many calls to generatePassword when the slider is being dragged
-    toObservable(this.passwordLength).pipe(skip(1), debounceTime(200), distinctUntilChanged(), takeUntilDestroyed()).subscribe((value: number) => {
-      this.passwordLength.set(value);
-      this.generatePassword();
-    });
+    toObservable(this.passwordLength)
+      .pipe(skip(1), debounceTime(200), distinctUntilChanged(), takeUntilDestroyed())
+      .subscribe((value: number) => {
+        this.passwordLength.set(value);
+        this.generatePassword();
+      });
   }
 
   ngOnInit() {
@@ -127,7 +145,11 @@ export class PasswordGeneratorComponent implements OnInit {
     const uniqueChars = Array.from(new Set(input.value)).join('');
 
     if (uniqueChars.length !== input.value.length) {
-      this.messageService.add({ severity: 'info', summary: 'Info', detail: 'Duplicate characters not allowed for custom characters' });
+      this.messageService.add({
+        severity: 'info',
+        summary: this.translocoService.translate('passwordGenerator.messages.info'),
+        detail: this.translocoService.translate('passwordGenerator.messages.duplicateCharacters')
+      });
       input.value = uniqueChars;
     }
 
@@ -163,9 +185,17 @@ export class PasswordGeneratorComponent implements OnInit {
 
   copyPasswordToClipboard() {
     navigator.clipboard.writeText(this.password).then(() => {
-      this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Password copied to clipboard' });
+      this.messageService.add({
+        severity: 'success',
+        summary: this.translocoService.translate('passwordGenerator.messages.success'),
+        detail: this.translocoService.translate('passwordGenerator.messages.passwordCopied')
+      });
     }).catch(err => {
-      this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Could not copy password' });
+      this.messageService.add({
+        severity: 'error',
+        summary: this.translocoService.translate('passwordGenerator.messages.error'),
+        detail: this.translocoService.translate('passwordGenerator.messages.copyFailed')
+      });
       console.error('Could not copy password: ', err);
     });
   }
@@ -176,7 +206,11 @@ export class PasswordGeneratorComponent implements OnInit {
     this.clickTimeout = setTimeout(() => this.clickCount = 0, 1000);
     if (this.clickCount === 8) {
       this.maxPasswordLength = 16384;
-      this.messageService.add({ severity: 'contrast', summary: 'Easter Egg Unlocked!', detail: 'Max password length increased to 16384' });
+      this.messageService.add({
+        severity: 'contrast',
+        summary: this.translocoService.translate('passwordGenerator.messages.easterEggUnlocked'),
+        detail: this.translocoService.translate('passwordGenerator.messages.maxLengthIncreased')
+      });
       this.clickCount = 0;
     }
   }

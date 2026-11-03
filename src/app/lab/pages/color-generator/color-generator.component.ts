@@ -1,6 +1,7 @@
 import { NgTemplateOutlet } from '@angular/common';
 import { Component, computed, effect, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { AccordionModule } from 'primeng/accordion';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -28,13 +29,14 @@ export enum ColorType {
 @Component({
   selector: 'app-color-generator',
   standalone: true,
-  imports: [FormsModule, ButtonModule, AutoContrastDirective, ColorPickerModule, OverlayPanelModule, AccordionModule, NgTemplateOutlet, SelectButtonModule, InputTextModule],
+  imports: [FormsModule, ButtonModule, AutoContrastDirective, ColorPickerModule, OverlayPanelModule, AccordionModule, NgTemplateOutlet, SelectButtonModule, InputTextModule, TranslocoModule],
   templateUrl: './color-generator.component.html',
   styleUrl: './color-generator.component.scss'
 })
 export class ColorGeneratorComponent implements OnInit {
   private messageService = inject(MessageService);
   private layoutService = inject(LayoutService);
+  private translocoService = inject(TranslocoService);
 
   currentColor = signal<Color>({ hex: '', rgb: '', hsv: '', hsl: '' });
   // compute shades based on current hex value
@@ -98,9 +100,17 @@ export class ColorGeneratorComponent implements OnInit {
 
   copyColorToClipboard(color: string) {
     navigator.clipboard.writeText(color).then(() => {
-      this.messageService.add({ severity: 'success', summary: color, detail: 'Copied to clipboard' });
+      this.messageService.add({
+        severity: 'success',
+        summary: color,
+        detail: this.translocoService.translate('colorGenerator.messages.copied')
+      });
     }).catch(err => {
-      this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Could not copy color' });
+      this.messageService.add({
+        severity: 'error',
+        summary: this.translocoService.translate('colorGenerator.messages.error'),
+        detail: this.translocoService.translate('colorGenerator.messages.copyFailed')
+      });
       console.error('Could not copy color: ', err);
     });
   }

@@ -2,6 +2,7 @@ import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testin
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { provideRouter } from '@angular/router';
 import { MessageService } from 'primeng/api';
+import { getTranslocoModule } from '../../../transloco-testing.module';
 import { ColorGeneratorComponent, ColorType } from './color-generator.component';
 
 describe('ColorGeneratorComponent', () => {
@@ -13,7 +14,7 @@ describe('ColorGeneratorComponent', () => {
     const msgSpy = jasmine.createSpyObj('MessageService', ['add']);
 
     await TestBed.configureTestingModule({
-      imports: [ColorGeneratorComponent],
+      imports: [ColorGeneratorComponent, getTranslocoModule()],
       providers: [
         provideRouter([]),
         provideNoopAnimations(),

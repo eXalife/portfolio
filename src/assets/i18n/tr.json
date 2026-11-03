@@ -7,5 +7,162 @@
         "passwordGenerator": "Şifre Oluşturucu",
         "colorGenerator": "Renk Oluşturucu",
         "numberGenerator": "Sayı Oluşturucu"
+    },
+    "weather": {
+        "title": "Hava Tahmini",
+        "search": {
+            "label": "Konum Ara",
+            "placeholder": "Şehir adı yazın..."
+        },
+        "metrics": {
+            "feelsLike": "Hissedilen Sıcaklık",
+            "humidity": "Nem",
+            "windSpeed": "Rüzgar Hızı",
+            "precipitation": "Yağış"
+        },
+        "hourlyForecast": "24 Saatlik Tahmin",
+        "dailyForecast": "7 Günlük Tahmin",
+        "emptyState": "Canlı hava durumu verilerini görüntülemek için yukarıdan bir şehir arayın ve seçin.",
+        "attribution": "Hava durumu verileri:",
+        "conditions": {
+            "clearSky": "Açık",
+            "mainlyClear": "Çoğunlukla Açık",
+            "partlyCloudy": "Parçalı Bulutlu",
+            "overcast": "Çok Bulutlu",
+            "fog": "Sisli",
+            "depositingRimeFog": "Kırağılı Sis",
+            "lightDrizzle": "Hafif Çisenti",
+            "moderateDrizzle": "Orta Şiddetli Çisenti",
+            "denseDrizzle": "Yoğun Çisenti",
+            "lightFreezingDrizzle": "Hafif Donan Çisenti",
+            "denseFreezingDrizzle": "Yoğun Donan Çisenti",
+            "slightRain": "Hafif Yağmurlu",
+            "moderateRain": "Orta Şiddetli Yağmur",
+            "heavyRain": "Kuvvetli Yağmur",
+            "lightFreezingRain": "Hafif Donan Yağmur",
+            "heavyFreezingRain": "Kuvvetli Donan Yağmur",
+            "slightSnowfall": "Hafif Kar Yağışı",
+            "moderateSnowfall": "Orta Şiddetli Kar Yağışı",
+            "heavySnowfall": "Yoğun Kar Yağışı",
+            "snowGrains": "Kar Taneleri",
+            "slightRainShowers": "Hafif Sağanak Yağış",
+            "moderateRainShowers": "Orta Şiddetli Sağanak Yağış",
+            "violentRainShowers": "Çok Kuvvetli Sağanak Yağış",
+            "slightSnowShowers": "Hafif Kar Sağanağı",
+            "heavySnowShowers": "Kuvvetli Kar Sağanağı",
+            "thunderstorm": "Gök Gürültülü Fırtına",
+            "thunderstormSlightHail": "Hafif Dolu ile Gök Gürültülü Fırtına",
+            "thunderstormHeavyHail": "Kuvvetli Dolu ile Gök Gürültülü Fırtına",
+            "unknownCondition": "Bilinmeyen Hava Durumu"
+        },
+        "errors": {
+            "fetchFailed": "Hava durumu verileri alınamadı",
+            "occurred": "Bir hata oluştu",
+            "locationUnavailable": "Konum Kullanılamıyor",
+            "ipLocationNotFound": "IP konumu belirlenemedi. Varsayılan konum olarak Vostok İstasyonu, Antarktika kullanılıyor."
+        }
+    },
+    "threeJs": {
+        "viewSource": "Kaynağı görüntüle: {{name}}",
+        "previousModel": "Önceki Model",
+        "nextModel": "Sonraki Model",
+        "initializing": "Başlatılıyor...",
+        "loaded": "yüklendi"
+    },
+    "passwordGenerator": {
+        "title": "Şifre Oluşturucu",
+        "password": "Şifre",
+        "uppercase": "Büyük Harfler",
+        "lowercase": "Küçük Harfler",
+        "numbers": "Rakamlar",
+        "symbols": "Semboller",
+        "customize": "Özelleştir",
+        "customCharacters": "Özel Karakterler",
+        "length": "Uzunluk:",
+        "generate": "Oluştur",
+        "copy": "Kopyala",
+        "messages": {
+            "info": "Bilgi",
+            "success": "Başarılı",
+            "error": "Hata",
+            "duplicateCharacters": "Özel karakterlerde yinelenen karakterlere izin verilmez",
+            "passwordCopied": "Şifre panoya kopyalandı",
+            "copyFailed": "Şifre kopyalanamadı",
+            "easterEggUnlocked": "Gizli Özellik Açıldı!",
+            "maxLengthIncreased": "Maksimum şifre uzunluğu 16384 olarak artırıldı"
+        }
+    },
+    "colorGenerator": {
+        "title": "Renk Oluşturucu",
+        "shades": "Renk Tonları",
+        "generate": "Oluştur",
+        "history": "Geçmiş",
+        "pick": "Seç",
+        "messages": {
+            "copied": "Panoya kopyalandı",
+            "error": "Hata",
+            "copyFailed": "Renk kopyalanamadı"
+        }
+    },
+    "numberGenerator": {
+        "title": "Sayı Üretici",
+        "bounds": "İzin verilen değer aralığı:",
+        "min": "Minimum",
+        "max": "Maksimum",
+        "number": "Sayı",
+        "inWords": "Yazıyla",
+        "generate": "Oluştur",
+        "reset": "Sıfırla",
+        "error": "Hata",
+        "minGreaterThanMax": "Minimum değer, maksimum değerden büyük olamaz.",
+        "outOfRange": "Değerler {{min}} ile {{max}} arasında olmalıdır.",
+        "invalidInteger": "Lütfen geçerli tam sayı değerleri girin.",
+        "words": {
+            "belowTwenty": [
+                "",
+                "bir",
+                "iki",
+                "üç",
+                "dört",
+                "beş",
+                "altı",
+                "yedi",
+                "sekiz",
+                "dokuz",
+                "on",
+                "on bir",
+                "on iki",
+                "on üç",
+                "on dört",
+                "on beş",
+                "on altı",
+                "on yedi",
+                "on sekiz",
+                "on dokuz"
+            ],
+            "tens": [
+                "",
+                "",
+                "yirmi",
+                "otuz",
+                "kırk",
+                "elli",
+                "altmış",
+                "yetmiş",
+                "seksen",
+                "doksan"
+            ],
+            "scales": [
+                "",
+                "bin",
+                "milyon",
+                "milyar",
+                "trilyon",
+                "katrilyon"
+            ]
+        }
+    },
+    "footer": {
+        "sourceCode": "Kaynak kodu"
     }
 }

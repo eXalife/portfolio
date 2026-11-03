@@ -5,6 +5,7 @@ import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { provideRouter } from '@angular/router';
 import { MessageService, PrimeNGConfig } from 'primeng/api';
 import { Subject } from 'rxjs';
+import { getTranslocoModule } from '../transloco-testing.module';
 import { LabComponent } from './lab.component';
 import { LayoutService } from './service/layout.service';
 
@@ -36,6 +37,7 @@ class MockLayoutService {
 
 class MockPrimeNGConfig {
   ripple = false;
+  inputStyle = () => 'outlined';
 }
 
 describe('LabComponent', () => {
@@ -51,7 +53,7 @@ describe('LabComponent', () => {
     msgSpy.clearObserver = new Subject<any>();
 
     await TestBed.configureTestingModule({
-      imports: [LabComponent],
+      imports: [LabComponent, getTranslocoModule()],
       providers: [
         provideRouter([]),
         provideNoopAnimations(),

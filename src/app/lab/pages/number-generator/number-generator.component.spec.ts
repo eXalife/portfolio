@@ -1,8 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { NumberGeneratorComponent } from './number-generator.component';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MessageService } from 'primeng/api';
-import { NoopAnimationsModule, provideNoopAnimations } from '@angular/platform-browser/animations';
-import { provideRouter } from '@angular/router';
+import { getTranslocoModule } from '../../../transloco-testing.module';
+import { NumberGeneratorComponent } from './number-generator.component';
 
 describe('NumberGeneratorComponent', () => {
   let component: NumberGeneratorComponent;
@@ -13,7 +13,7 @@ describe('NumberGeneratorComponent', () => {
     const spy = jasmine.createSpyObj('MessageService', ['add']);
 
     await TestBed.configureTestingModule({
-      imports: [NumberGeneratorComponent, NoopAnimationsModule],
+      imports: [NumberGeneratorComponent, NoopAnimationsModule, getTranslocoModule()],
       providers: [
         { provide: MessageService, useValue: spy }
       ]
@@ -143,7 +143,7 @@ describe('NumberGeneratorComponent', () => {
     });
 
     it('should handle negative numbers', () => {
-      expect(component.numberToWords(-42)).toBe('minus forty-two');
+      expect(component.numberToWords(-42)).toBe('minus forty two');
     });
 
     it('should handle numbers below 20', () => {
@@ -152,7 +152,7 @@ describe('NumberGeneratorComponent', () => {
     });
 
     it('should handle tens and units', () => {
-      expect(component.numberToWords(45)).toBe('forty-five');
+      expect(component.numberToWords(45)).toBe('forty five');
       expect(component.numberToWords(90)).toBe('ninety');
     });
 
@@ -162,7 +162,7 @@ describe('NumberGeneratorComponent', () => {
     });
 
     it('should handle large numbers with scales', () => {
-      expect(component.numberToWords(1234)).toBe('one thousand two hundred thirty-four');
+      expect(component.numberToWords(1234)).toBe('one thousand two hundred thirty four');
       expect(component.numberToWords(1000000)).toBe('one million');
       expect(component.numberToWords(1500000000)).toBe('one billion five hundred million');
     });

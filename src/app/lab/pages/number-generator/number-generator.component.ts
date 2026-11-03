@@ -1,6 +1,7 @@
 import { DecimalPipe } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { FieldsetModule } from 'primeng/fieldset';
@@ -10,20 +11,27 @@ import { InputTextModule } from 'primeng/inputtext';
 @Component({
   selector: 'app-number-generator',
   standalone: true,
-  imports: [FormsModule, InputTextModule, FloatLabelModule, ButtonModule, DecimalPipe, FieldsetModule],
+  imports: [FormsModule, InputTextModule, FloatLabelModule, ButtonModule, DecimalPipe, FieldsetModule, TranslocoModule],
   templateUrl: './number-generator.component.html',
   styleUrl: './number-generator.component.scss'
 })
 export class NumberGeneratorComponent {
-  private readonly belowTwenty = ['', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen'];
-  private readonly tens = ['', '', 'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety'];
-  private readonly scales = ['', 'thousand', 'million', 'billion', 'trillion', 'quadrillion'];
+  private get belowTwenty(): string[] {
+    return this.translocoService.translateObject<string[]>('numberGenerator.words.belowTwenty');
+  }
+  private get tens(): string[] {
+    return this.translocoService.translateObject<string[]>('numberGenerator.words.tens');
+  }
+  private get scales(): string[] {
+    return this.translocoService.translateObject<string[]>('numberGenerator.words.scales');
+  }
   private readonly BigUint64Range = 18446744073709551616n;
 
   readonly minSafe = Number.MIN_SAFE_INTEGER;
   readonly maxSafe = Number.MAX_SAFE_INTEGER;
 
   messageService: MessageService = inject(MessageService);
+  translocoService: TranslocoService = inject(TranslocoService);
 
   randomNumber = signal<number | null>(null);
 
@@ -36,13 +44,21 @@ export class NumberGeneratorComponent {
       const maxBig = this.sanitizeToBigInt(this.maxInput);
 
       if (minBig > maxBig) {
-        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Min value cannot be greater than Max value.' });
+        this.messageService.add({
+          severity: 'error',
+          summary: this.translocoService.translate('numberGenerator.error'),
+          detail: this.translocoService.translate('numberGenerator.minGreaterThanMax')
+        });
         this.randomNumber.set(null);
         return;
       }
 
       if (minBig < BigInt(this.minSafe) || maxBig > BigInt(this.maxSafe)) {
-        this.messageService.add({ severity: 'error', summary: 'Error', detail: `Values must be between ${this.minSafe} and ${this.maxSafe}.` });
+        this.messageService.add({
+          severity: 'error',
+          summary: this.translocoService.translate('numberGenerator.error'),
+          detail: this.translocoService.translate('numberGenerator.outOfRange', { min: this.minSafe, max: this.maxSafe })
+        });
         this.randomNumber.set(null);
         return;
       }
@@ -52,7 +68,11 @@ export class NumberGeneratorComponent {
 
     } catch (error) {
       // Catches invalid inputs (like empty fields, standalone '-', or parse failures)
-      this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Please enter valid integer numbers.' });
+      this.messageService.add({
+        severity: 'error',
+        summary: this.translocoService.translate('numberGenerator.error'),
+        detail: this.translocoService.translate('numberGenerator.invalidInteger')
+      });
       this.randomNumber.set(null);
     }
   }
@@ -80,7 +100,7 @@ export class NumberGeneratorComponent {
     const convertChunk = (n: number): string => {
       if (n === 0) return '';
       if (n < 20) return this.belowTwenty[n] + ' ';
-      if (n < 100) return this.tens[Math.floor(n / 10)] + (n % 10 !== 0 ? '-' + this.belowTwenty[n % 10] : '') + ' ';
+      if (n < 100) return this.tens[Math.floor(n / 10)] + (n % 10 !== 0 ? ' ' + this.belowTwenty[n % 10] : '') + ' ';
       return this.belowTwenty[Math.floor(n / 100)] + ' hundred ' + convertChunk(n % 100);
     };
 

@@ -1,4 +1,5 @@
 import { afterNextRender, Component, computed, ElementRef, inject, NgZone, OnDestroy, signal, ViewChild } from '@angular/core';
+import { TranslocoModule } from '@jsverse/transloco';
 import { ProgressBarModule } from 'primeng/progressbar';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
@@ -19,7 +20,7 @@ interface ModelItem {
 @Component({
   selector: 'app-three-js-viewer',
   standalone: true,
-  imports: [ProgressBarModule],
+  imports: [ProgressBarModule, TranslocoModule],
   templateUrl: './three-js-viewer.component.html',
   styleUrl: './three-js-viewer.component.scss'
 })
@@ -70,9 +71,9 @@ export class ThreeJsViewerComponent implements OnDestroy {
       return `${loadedMb} MB / ${totalMb} MB (${this.progress()}%)`;
     }
     if (loaded > 0) {
-      return `${(loaded / (1024 * 1024)).toFixed(1)} MB loaded`;
+      return `${(loaded / (1024 * 1024)).toFixed(1)} MB`;
     }
-    return 'Initializing...';
+    return '';
   });
 
   private renderer?: THREE.WebGLRenderer;

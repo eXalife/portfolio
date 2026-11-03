@@ -1,6 +1,6 @@
 <div class="p-fluid col-12 xl:col-10 xl:col-offset-1">
     <div class="card flex flex-column row-gap-3">
-        <h5>Color Generator</h5>
+        <h5>{{ 'colorGenerator.title' | transloco }}</h5>
         <div class="field col-12 p-0">
             <div class="col-12 md:col-4 md:col-offset-4">
                 <ng-container [ngTemplateOutlet]="colorCard"
@@ -11,7 +11,7 @@
         <div class="field col-12 p-0">
             <div class="col-12 block sm:hidden p-0">
                 <p-accordion>
-                    <p-accordionTab header="Shades">
+                    <p-accordionTab [header]="'colorGenerator.shades' | transloco">
                         <div class="flex flex-column row-gap-3">
                             @for (shade of colorShades(); track shade.hex) {
                             <ng-container [ngTemplateOutlet]="colorCard" [ngTemplateOutletContext]="{ shade: shade }">
@@ -34,10 +34,11 @@
     </div>
     <div class="field col grid row-gap-3 p-0">
         <div class="col-12 md:col-4">
-            <p-button label="Generate" icon="pi pi-sync" (onClick)="setColor()" />
+            <p-button [label]="'colorGenerator.generate' | transloco" icon="pi pi-sync" (onClick)="setColor()" />
         </div>
         <div class="col-12 md:col-4" #historyContainer>
-            <p-button (onClick)="historyOp.toggle($event)" icon="pi pi-history" label="History" severity="info" />
+            <p-button (onClick)="historyOp.toggle($event)" icon="pi pi-history"
+                [label]="'colorGenerator.history' | transloco" severity="info" />
             <p-overlayPanel #historyOp [style]="{ 'width': 'calc(' + historyContainer.offsetWidth + 'px - 1rem)' }">
                 @for (hex of colorHistory(); track $index) {
                 <div class="cursor-pointer m-1 w-auto h-2rem" [style.backgroundColor]="hex" (click)="setColor(hex)">
@@ -46,7 +47,8 @@
             </p-overlayPanel>
         </div>
         <div class="col-12 md:col-4" #pickContainer>
-            <p-button (onClick)="pickOp.toggle($event)" label="Pick" icon="pi pi-palette" severity="success" />
+            <p-button (onClick)="pickOp.toggle($event)" [label]="'colorGenerator.pick' | transloco" icon="pi pi-palette"
+                severity="success" />
             <p-overlayPanel #pickOp
                 [style]="{ 'width': 'calc(' + pickContainer.offsetWidth + 'px - 1rem)', 'min-width': '256px' }">
                 <div class="grid grid-nogutter">

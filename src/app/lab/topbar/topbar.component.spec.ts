@@ -1,7 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { TopbarComponent } from './topbar.component';
 import { provideRouter } from '@angular/router';
+import { getTranslocoModule } from '../../transloco-testing.module';
+import { TopbarComponent } from './topbar.component';
 
 describe('TopbarComponent', () => {
   let component: TopbarComponent;
@@ -9,7 +10,7 @@ describe('TopbarComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [TopbarComponent],
+      imports: [TopbarComponent, getTranslocoModule()],
       providers: [provideRouter([])]
     })
     .compileComponents();

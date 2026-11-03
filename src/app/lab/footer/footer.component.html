@@ -2,6 +2,6 @@
     <a class="ml-auto footer-link" routerLink="/">Cem Temuçin</a>
     <a class="ml-auto footer-link" rel="noopener" target="_blank" href="https://github.com/eXalife/portfolio">
         <img src="assets/{{layoutService.config().colorScheme === 'light' ? 'github-black' : 'github'}}.svg"
-            alt="github" pTooltip="Source code" tooltipPosition="left">
+            alt="github" [pTooltip]="'footer.sourceCode' | transloco" tooltipPosition="left">
     </a>
 </div>

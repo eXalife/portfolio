@@ -1,7 +1,8 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { MessageService } from 'primeng/api';
-import { Observable, catchError, map, of, switchMap } from 'rxjs';
+import { TranslocoService } from '@jsverse/transloco';
+import { Observable, catchError, map, of } from 'rxjs';
 import { GeoLocation, GeocodingResponse, WeatherData } from '../model/weather.models';
 
 @Injectable({
@@ -10,6 +11,7 @@ import { GeoLocation, GeocodingResponse, WeatherData } from '../model/weather.mo
 export class WeatherForecastService {
   private http = inject(HttpClient);
   private messageService = inject(MessageService);
+  private translocoService = inject(TranslocoService);
 
   private readonly fallbackLocation: GeoLocation = {
     latitude: -78.558876,
@@ -39,8 +41,8 @@ export class WeatherForecastService {
       catchError(() => {
         this.messageService.add({
           severity: 'info',
-          summary: 'Location Unavailable',
-          detail: "IP location couldn't be located. Defaulting to Vostok Station, Antarctica.",
+          summary: this.translocoService.translate('weather.errors.locationUnavailable'),
+          detail: this.translocoService.translate('weather.errors.ipLocationNotFound'),
           life: 10000
         });
         return of(this.fallbackLocation);
@@ -48,11 +50,42 @@ export class WeatherForecastService {
     );
   }
 
-  searchCities(query: string): Observable<GeoLocation[]> {
+  getTranslatedLocation(location: GeoLocation, language: string): Observable<GeoLocation> {
+    const lang = language.split('-')[0].toLowerCase();
+
+    if (location.id) {
+      const params = new HttpParams()
+        .set('id', location.id.toString())
+        .set('language', lang);
+
+      return this.http.get<GeoLocation>('https://geocoding-api.open-meteo.com/v1/get', { params }).pipe(
+        map(item => ({
+          ...location,
+          ...item,
+          displayName: [item.name, item.admin1, item.country].filter(Boolean).join(', ')
+        }))
+      );
+    }
+
+    return this.searchCities(location.name, lang).pipe(
+      map(results => {
+        if (!results.length) return location;
+
+        return results.reduce((closest, item) => {
+          const distance = (item.latitude - location.latitude) ** 2 + (item.longitude - location.longitude) ** 2;
+          const closestDistance = (closest.latitude - location.latitude) ** 2 + (closest.longitude - location.longitude) ** 2;
+          return distance < closestDistance ? item : closest;
+        });
+      })
+    );
+  }
+
+  searchCities(query: string, language = this.translocoService.getActiveLang()): Observable<GeoLocation[]> {
     if (!query?.trim() || query.trim().length < 2) return of([]);
 
     const params = new HttpParams()
       .set('name', query.trim())
+      .set('language', language.split('-')[0].toLowerCase());
 
     return this.http.get<GeocodingResponse>('https://geocoding-api.open-meteo.com/v1/search', { params }).pipe(
       map(res => (res.results ?? []).map(item => ({
@@ -81,74 +114,74 @@ export class WeatherForecastService {
   getWeatherCondition(code: number): { label: string; icon: string } {
     switch (code) {
       case 0:
-        return { label: 'Clear Sky', icon: 'pi-sun' };
+        return { label: 'weather.conditions.clearSky', icon: 'pi-sun' };
 
       case 1:
-        return { label: 'Mainly Clear', icon: 'pi-sun' };
+        return { label: 'weather.conditions.mainlyClear', icon: 'pi-sun' };
       case 2:
-        return { label: 'Partly Cloudy', icon: 'pi-cloud' };
+        return { label: 'weather.conditions.partlyCloudy', icon: 'pi-cloud' };
       case 3:
-        return { label: 'Overcast', icon: 'pi-cloud' };
+        return { label: 'weather.conditions.overcast', icon: 'pi-cloud' };
 
       case 45:
-        return { label: 'Fog', icon: 'pi-align-justify' };
+        return { label: 'weather.conditions.fog', icon: 'pi-align-justify' };
       case 48:
-        return { label: 'Depositing Rime Fog', icon: 'pi-align-justify' };
+        return { label: 'weather.conditions.depositingRimeFog', icon: 'pi-align-justify' };
 
       case 51:
-        return { label: 'Light Drizzle', icon: 'pi-cloud-download' };
+        return { label: 'weather.conditions.lightDrizzle', icon: 'pi-cloud-download' };
       case 53:
-        return { label: 'Moderate Drizzle', icon: 'pi-cloud-download' };
+        return { label: 'weather.conditions.moderateDrizzle', icon: 'pi-cloud-download' };
       case 55:
-        return { label: 'Dense Drizzle', icon: 'pi-cloud-download' };
+        return { label: 'weather.conditions.denseDrizzle', icon: 'pi-cloud-download' };
 
       case 56:
-        return { label: 'Light Freezing Drizzle', icon: 'pi-snowflake' };
+        return { label: 'weather.conditions.lightFreezingDrizzle', icon: 'pi-snowflake' };
       case 57:
-        return { label: 'Dense Freezing Drizzle', icon: 'pi-snowflake' };
+        return { label: 'weather.conditions.denseFreezingDrizzle', icon: 'pi-snowflake' };
 
       case 61:
-        return { label: 'Slight Rain', icon: 'pi-cloud-download' };
+        return { label: 'weather.conditions.slightRain', icon: 'pi-cloud-download' };
       case 63:
-        return { label: 'Moderate Rain', icon: 'pi-cloud-download' };
+        return { label: 'weather.conditions.moderateRain', icon: 'pi-cloud-download' };
       case 65:
-        return { label: 'Heavy Rain', icon: 'pi-cloud-download' };
+        return { label: 'weather.conditions.heavyRain', icon: 'pi-cloud-download' };
 
       case 66:
-        return { label: 'Light Freezing Rain', icon: 'pi-snowflake' };
+        return { label: 'weather.conditions.lightFreezingRain', icon: 'pi-snowflake' };
       case 67:
-        return { label: 'Heavy Freezing Rain', icon: 'pi-snowflake' };
+        return { label: 'weather.conditions.heavyFreezingRain', icon: 'pi-snowflake' };
 
       case 71:
-        return { label: 'Slight Snowfall', icon: 'pi-snowflake' };
+        return { label: 'weather.conditions.slightSnowfall', icon: 'pi-snowflake' };
       case 73:
-        return { label: 'Moderate Snowfall', icon: 'pi-snowflake' };
+        return { label: 'weather.conditions.moderateSnowfall', icon: 'pi-snowflake' };
       case 75:
-        return { label: 'Heavy Snowfall', icon: 'pi-snowflake' };
+        return { label: 'weather.conditions.heavySnowfall', icon: 'pi-snowflake' };
       case 77:
-        return { label: 'Snow Grains', icon: 'pi-snowflake' };
+        return { label: 'weather.conditions.snowGrains', icon: 'pi-snowflake' };
 
       case 80:
-        return { label: 'Slight Rain Showers', icon: 'pi-cloud-download' };
+        return { label: 'weather.conditions.slightRainShowers', icon: 'pi-cloud-download' };
       case 81:
-        return { label: 'Moderate Rain Showers', icon: 'pi-cloud-download' };
+        return { label: 'weather.conditions.moderateRainShowers', icon: 'pi-cloud-download' };
       case 82:
-        return { label: 'Violent Rain Showers', icon: 'pi-cloud-download' };
+        return { label: 'weather.conditions.violentRainShowers', icon: 'pi-cloud-download' };
 
       case 85:
-        return { label: 'Slight Snow Showers', icon: 'pi-snowflake' };
+        return { label: 'weather.conditions.slightSnowShowers', icon: 'pi-snowflake' };
       case 86:
-        return { label: 'Heavy Snow Showers', icon: 'pi-snowflake' };
+        return { label: 'weather.conditions.heavySnowShowers', icon: 'pi-snowflake' };
 
       case 95:
-        return { label: 'Thunderstorm', icon: 'pi-bolt' };
+        return { label: 'weather.conditions.thunderstorm', icon: 'pi-bolt' };
       case 96:
-        return { label: 'Thunderstorm with Slight Hail', icon: 'pi-bolt' };
+        return { label: 'weather.conditions.thunderstormSlightHail', icon: 'pi-bolt' };
       case 99:
-        return { label: 'Thunderstorm with Heavy Hail', icon: 'pi-bolt' };
+        return { label: 'weather.conditions.thunderstormHeavyHail', icon: 'pi-bolt' };
 
       default:
-        return { label: 'Unknown Condition', icon: 'pi-question-circle' };
+        return { label: 'weather.conditions.unknownCondition', icon: 'pi-question-circle' };
     }
   }
 }

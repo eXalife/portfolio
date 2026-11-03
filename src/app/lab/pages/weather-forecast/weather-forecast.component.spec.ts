@@ -3,6 +3,7 @@ import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testin
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MessageService } from 'primeng/api';
 import { of, throwError } from 'rxjs';
+import { getTranslocoModule } from '../../../transloco-testing.module';
 import { GeoLocation, WeatherData } from '../../model/weather.models';
 import { LayoutService } from '../../service/layout.service';
 import { WeatherForecastService } from '../../service/weather-forecast.service';
@@ -59,7 +60,8 @@ describe('WeatherForecastComponent', () => {
       'getClientLocation',
       'searchCities',
       'getWeather',
-      'getWeatherCondition'
+      'getWeatherCondition',
+      'getTranslatedLocation'
     ]);
     messageServiceSpy = jasmine.createSpyObj('MessageService', ['add']);
 
@@ -72,9 +74,10 @@ describe('WeatherForecastComponent', () => {
     weatherServiceSpy.searchCities.and.returnValue(of([mockGeoLocation]));
     weatherServiceSpy.getWeather.and.returnValue(of(mockWeatherData));
     weatherServiceSpy.getWeatherCondition.and.returnValue({ label: 'Clear Sky', icon: 'pi-sun' });
+    weatherServiceSpy.getTranslatedLocation.and.returnValue(of(mockGeoLocation));
 
     await TestBed.configureTestingModule({
-      imports: [WeatherForecastComponent, NoopAnimationsModule],
+      imports: [WeatherForecastComponent, NoopAnimationsModule, getTranslocoModule()],
       providers: [
         { provide: WeatherForecastService, useValue: weatherServiceSpy },
         { provide: MessageService, useValue: messageServiceSpy },
@@ -124,7 +127,7 @@ describe('WeatherForecastComponent', () => {
 
       tick(300);
 
-      expect(weatherServiceSpy.searchCities).toHaveBeenCalledWith('Lon');
+      expect(weatherServiceSpy.searchCities).toHaveBeenCalledWith('Lon', 'en');
       expect(localComponent.suggestions()).toEqual([mockGeoLocation]);
     }));
 

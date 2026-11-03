@@ -1,9 +1,10 @@
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
-import { PasswordGeneratorComponent } from './password-generator.component';
-import { LayoutService } from '../../service/layout.service';
-import { MessageService } from 'primeng/api';
-import { provideRouter } from '@angular/router';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
+import { provideRouter } from '@angular/router';
+import { MessageService } from 'primeng/api';
+import { getTranslocoModule } from '../../../transloco-testing.module';
+import { LayoutService } from '../../service/layout.service';
+import { PasswordGeneratorComponent } from './password-generator.component';
 
 describe('PasswordGeneratorComponent', () => {
   let component: PasswordGeneratorComponent;
@@ -16,7 +17,7 @@ describe('PasswordGeneratorComponent', () => {
     const layoutSpy = { isBrowser: true };
 
     await TestBed.configureTestingModule({
-      imports: [PasswordGeneratorComponent],
+      imports: [PasswordGeneratorComponent, getTranslocoModule()],
       providers: [
         provideRouter([]),
         provideNoopAnimations(),

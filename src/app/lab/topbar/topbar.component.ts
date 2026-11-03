@@ -1,5 +1,6 @@
 import { NgClass } from '@angular/common';
-import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { Component, DestroyRef, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { TranslocoService } from '@jsverse/transloco';
 import { MenuItem } from 'primeng/api';
@@ -35,7 +36,7 @@ export class TopbarComponent implements OnInit {
   @ViewChild('topbarmenubutton') topbarMenuButton!: ElementRef;
   @ViewChild('topbarmenu') menu!: ElementRef;
 
-  constructor(public layoutService: LayoutService, private translocoService: TranslocoService) {
+  constructor(public layoutService: LayoutService, private translocoService: TranslocoService, private destroyRef: DestroyRef) {
     if (layoutService.isBrowser) {
     }
   }
@@ -43,6 +44,9 @@ export class TopbarComponent implements OnInit {
   ngOnInit(): void {
     this.themeSwitch = this.layoutService.config().colorScheme;
     this.layoutService.configUpdate$.pipe(distinctUntilChanged()).subscribe(config => this.themeSwitch = config.colorScheme);
+
+    this.selectedLang = this.translocoService.getActiveLang();
+    this.translocoService.langChanges$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(lang => this.selectedLang = lang);
   }
 
   triggerChangeTheme() {

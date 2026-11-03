@@ -7,5 +7,162 @@
         "passwordGenerator": "Password Generator",
         "colorGenerator": "Color Generator",
         "numberGenerator": "Number Generator"
+    },
+    "weather": {
+        "title": "Weather Forecast",
+        "search": {
+            "label": "Search Location",
+            "placeholder": "Type a city name..."
+        },
+        "metrics": {
+            "feelsLike": "Feels Like",
+            "humidity": "Humidity",
+            "windSpeed": "Wind Speed",
+            "precipitation": "Precipitation"
+        },
+        "hourlyForecast": "24-Hour Forecast",
+        "dailyForecast": "7-Day Forecast",
+        "emptyState": "Search and select a city above to view live weather data.",
+        "attribution": "Weather data by",
+        "conditions": {
+            "clearSky": "Clear Sky",
+            "mainlyClear": "Mainly Clear",
+            "partlyCloudy": "Partly Cloudy",
+            "overcast": "Overcast",
+            "fog": "Fog",
+            "depositingRimeFog": "Depositing Rime Fog",
+            "lightDrizzle": "Light Drizzle",
+            "moderateDrizzle": "Moderate Drizzle",
+            "denseDrizzle": "Dense Drizzle",
+            "lightFreezingDrizzle": "Light Freezing Drizzle",
+            "denseFreezingDrizzle": "Dense Freezing Drizzle",
+            "slightRain": "Slight Rain",
+            "moderateRain": "Moderate Rain",
+            "heavyRain": "Heavy Rain",
+            "lightFreezingRain": "Light Freezing Rain",
+            "heavyFreezingRain": "Heavy Freezing Rain",
+            "slightSnowfall": "Slight Snowfall",
+            "moderateSnowfall": "Moderate Snowfall",
+            "heavySnowfall": "Heavy Snowfall",
+            "snowGrains": "Snow Grains",
+            "slightRainShowers": "Slight Rain Showers",
+            "moderateRainShowers": "Moderate Rain Showers",
+            "violentRainShowers": "Violent Rain Showers",
+            "slightSnowShowers": "Slight Snow Showers",
+            "heavySnowShowers": "Heavy Snow Showers",
+            "thunderstorm": "Thunderstorm",
+            "thunderstormSlightHail": "Thunderstorm with Slight Hail",
+            "thunderstormHeavyHail": "Thunderstorm with Heavy Hail",
+            "unknownCondition": "Unknown Condition"
+        },
+        "errors": {
+            "fetchFailed": "Failed to fetch weather data",
+            "occurred": "Error occurred",
+            "locationUnavailable": "Location Unavailable",
+            "ipLocationNotFound": "IP location couldn't be located. Defaulting to Vostok Station, Antarctica."
+        }
+    },
+    "threeJs": {
+        "viewSource": "View source: {{name}}",
+        "previousModel": "Previous Model",
+        "nextModel": "Next Model",
+        "initializing": "Initializing...",
+        "loaded": "loaded"
+    },
+    "passwordGenerator": {
+        "title": "Password Generator",
+        "password": "Password",
+        "uppercase": "Uppercase",
+        "lowercase": "Lowercase",
+        "numbers": "Numbers",
+        "symbols": "Symbols",
+        "customize": "Customize",
+        "customCharacters": "Custom Characters",
+        "length": "Length:",
+        "generate": "Generate",
+        "copy": "Copy",
+        "messages": {
+            "info": "Info",
+            "success": "Success",
+            "error": "Error",
+            "duplicateCharacters": "Duplicate characters not allowed for custom characters",
+            "passwordCopied": "Password copied to clipboard",
+            "copyFailed": "Could not copy password",
+            "easterEggUnlocked": "Easter Egg Unlocked!",
+            "maxLengthIncreased": "Max password length increased to 16384"
+        }
+    },
+    "colorGenerator": {
+        "title": "Color Generator",
+        "shades": "Shades",
+        "generate": "Generate",
+        "history": "History",
+        "pick": "Pick",
+        "messages": {
+            "copied": "Copied to clipboard",
+            "error": "Error",
+            "copyFailed": "Could not copy color"
+        }
+    },
+    "numberGenerator": {
+        "title": "Number Generator",
+        "bounds": "Bounds enforced between",
+        "min": "Min",
+        "max": "Max",
+        "number": "Number",
+        "inWords": "In Words",
+        "generate": "Generate",
+        "reset": "Reset",
+        "error": "Error",
+        "minGreaterThanMax": "Min value cannot be greater than Max value.",
+        "outOfRange": "Values must be between {{min}} and {{max}}.",
+        "invalidInteger": "Please enter valid integer numbers.",
+        "words": {
+            "belowTwenty": [
+                "",
+                "one",
+                "two",
+                "three",
+                "four",
+                "five",
+                "six",
+                "seven",
+                "eight",
+                "nine",
+                "ten",
+                "eleven",
+                "twelve",
+                "thirteen",
+                "fourteen",
+                "fifteen",
+                "sixteen",
+                "seventeen",
+                "eighteen",
+                "nineteen"
+            ],
+            "tens": [
+                "",
+                "",
+                "twenty",
+                "thirty",
+                "forty",
+                "fifty",
+                "sixty",
+                "seventy",
+                "eighty",
+                "ninety"
+            ],
+            "scales": [
+                "",
+                "thousand",
+                "million",
+                "billion",
+                "trillion",
+                "quadrillion"
+            ]
+        }
+    },
+    "footer": {
+        "sourceCode": "Source code"
     }
 }

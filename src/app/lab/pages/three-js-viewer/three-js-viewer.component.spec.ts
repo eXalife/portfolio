@@ -1,8 +1,9 @@
-import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
-import { ThreeJsViewerComponent } from './three-js-viewer.component';
-import { LayoutService } from '../../service/layout.service';
 import { signal, WritableSignal } from '@angular/core';
+import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
 import * as THREE from 'three';
+import { getTranslocoModule } from '../../../transloco-testing.module';
+import { LayoutService } from '../../service/layout.service';
+import { ThreeJsViewerComponent } from './three-js-viewer.component';
 
 class MockLayoutService {
   loading: WritableSignal<boolean> = signal(false);
@@ -23,7 +24,7 @@ describe('ThreeJsViewerComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ThreeJsViewerComponent],
+      imports: [ThreeJsViewerComponent, getTranslocoModule()],
       providers: [
         { provide: LayoutService, useClass: MockLayoutService }
       ]
@@ -176,7 +177,7 @@ describe('ThreeJsViewerComponent', () => {
         loaded: 2 * 1024 * 1024,
         total: 0
       });
-      expect(component.progressDetails()).toBe('2.0 MB loaded');
+      expect(component.progressDetails()).toBe('2.0 MB');
     }));
 
     it('should handle GLTFLoader success callback', fakeAsync(() => {

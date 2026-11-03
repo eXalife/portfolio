@@ -1,12 +1,18 @@
 import { TestBed } from '@angular/core/testing';
 import { AppComponent } from './app.component';
 import { provideRouter } from '@angular/router';
+import { CanonicalService } from './service/canonical.service';
+import { LanguagePreferenceService } from './service/language-preference.service';
 
 describe('AppComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [AppComponent],
-      providers: [provideRouter([])]
+      providers: [
+        provideRouter([]),
+        { provide: CanonicalService, useValue: { init: jasmine.createSpy('init') } },
+        { provide: LanguagePreferenceService, useValue: {} }
+      ]
     }).compileComponents();
   });
 
